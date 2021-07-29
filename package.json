@@ -1,0 +1,35 @@
+{
+  "name": "duo-toolbox",
+  "description": "A set of general and specialized tools for building browser extensions and user scripts targeting Duolingo.",
+  "license": "MIT",
+  "author": "blmage",
+  "version": "1.0.0",
+  "exports": {
+    "./duo/challenges": "./dist/duo/challenges.js",
+    "./duo/context": "./dist/duo/context.js",
+    "./duo/courses": "./dist/duo/courses.js",
+    "./duo/events": "./dist/duo/events.js",
+    "./duo/sounds": "./dist/duo/sounds.js",
+    "./duo/url": "./dist/duo/url.js",
+    "./extension/background": "./dist/extension/background.js",
+    "./extension/ipc": "./dist/extension/ipc.js",
+    "./extension/ui": "./dist/extension/ui.js",
+    "./utils/functions": "./dist/utils/functions.js",
+    "./utils/logging": "./dist/utils/logging.js",
+    "./utils/ui": "./dist/utils/ui.js"
+  },
+  "scripts": {
+    "build": "babel src -d dist",
+    "prepare": "npm run build"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/cli": "^7.14.8",
+    "@babel/core": "^7.14.8",
+    "@babel/plugin-proposal-optional-chaining": "^7.14.5",
+    "babel-plugin-macros": "^2.8.0",
+    "eslint": "^7.31.0",
+    "eslint-plugin-jsdoc": "^30.7.13",
+    "one-liner.macro": "git+https://github.com/blmage/one-liner.macro.git"
+  }
+}
