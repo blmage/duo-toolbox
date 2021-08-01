@@ -548,7 +548,7 @@ const KEY_SOUND_DETECTION_UNREGISTRATION_CALLBACKS = 'sound_detection_unregistra
 const getSpeakerSoundData = (sound, type, language) => ({
   url: sound.url,
   type,
-  speed: sound?.speed.value || SOUND_SPEED_NORMAL,
+  speed: sound.speed?.value || SOUND_SPEED_NORMAL,
   language,
 });
 
