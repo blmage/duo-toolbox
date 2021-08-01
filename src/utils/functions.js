@@ -26,14 +26,14 @@ export const runPromiseForEffects = it.then(noop).catch(noop);
  * @param {*} value A value.
  * @returns {boolean} Whether the given value is a valid, finite number.
  */
-export const isNumber = (typeof _1 === 'number') && Number.isFinite(_1);
+export const isNumber = ('number' === typeof _1) && Number.isFinite(_1);
 
 /**
  * @type {Function}
  * @param {*} value A value.
  * @returns {boolean} Whether the given value is a string.
  */
-export const isString = (typeof _ === 'string');
+export const isString = ('string' === typeof _);
 
 /**
  * @type {Function}
