@@ -88,7 +88,7 @@ const releaseMutex = (mutexCode, holderId) => {
     }
 
     return mutex;
-  }, {});
+  });
 };
 
 /**
