@@ -136,10 +136,12 @@ const applyAudioSettingPropertyOverride = (code, propertyName) => (
       if (isNumber(value)) {
         this[setting.originalValueKey] = value;
 
-        if (!this[setting.isRelativeKey]) {
-          value = this[setting.valueKey];
-        } else {
-          value = clampSoundSettingValue(code, value * this[setting.valueKey]);
+        if (hasObjectProperty(this, setting.valueKey)) {
+          if (!this[setting.isRelativeKey]) {
+            value = this[setting.valueKey];
+          } else {
+            value = clampSoundSettingValue(code, value * this[setting.valueKey]);
+          }
         }
       } else if (isForcedSettingValue(value)) {
         value = getForcedSettingBaseValue(value);
@@ -168,7 +170,7 @@ const applyHowlSettingFunctionOverride = (code, functionName) => (
     const args = arguments;
     const setting = SOUND_SETTINGS[code];
 
-    let isValueUpdate = false;
+    let isForcedValueUpdate = false;
     const originalQueueSize = self._queue.length;
 
     if (
@@ -177,15 +179,23 @@ const applyHowlSettingFunctionOverride = (code, functionName) => (
     ) {
       if (self._getSoundIds().indexOf(args[0]) === -1) {
         if (isForcedSettingValue(args[0])) {
-          isValueUpdate = true;
+          isForcedValueUpdate = true;
           args[0] = getForcedSettingBaseValue(args[0]);
         } else if (isValidHowlSettingValue(code, args[0])) {
-          isValueUpdate = true;
           self[setting.originalValueKey] = args[0];
-          args[0] = clampSoundSettingValue(code, self[setting.valueKey] * (!self[setting.isRelativeKey] ? 1 : args[0]));
+
+          if (hasObjectProperty(self, setting.valueKey)) {
+            isForcedValueUpdate = true;
+
+            if (!self[setting.isRelativeKey]) {
+              args[0] = self[setting.valueKey];
+            } else {
+              args[0] = clampSoundSettingValue(code, args[0] * self[setting.valueKey]);
+            }
+          }
         }
 
-        if (isValueUpdate) {
+        if (isForcedValueUpdate) {
           self[setting.listenerValueKey] = args[0];
         }
       }
@@ -193,7 +203,7 @@ const applyHowlSettingFunctionOverride = (code, functionName) => (
 
     const result = originalHowlSetter.apply(self, arguments);
 
-    if (isValueUpdate && (originalQueueSize < self._queue.length)) {
+    if (isForcedValueUpdate && (originalQueueSize < self._queue.length)) {
       self._queue[self._queue.length - 1].action = function () {
         args[0] = wrapForcedSettingBaseValue(args[0]);
         self[functionName](...args);
