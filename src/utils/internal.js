@@ -257,6 +257,33 @@ export const onConstructorCall = (name, callback, listenerId, listenerVersion = 
 );
 
 /**
+ * Applies an override to the descriptor of an object property.
+ *
+ * The override is only applied if necessary. If the property does not exist yet, it will be initialized.
+ *
+ * @param {object} host The object that owns the property to override.
+ * @param {string} name The name of the property to override.
+ * @param {Function} applyOverride A callback responsible for overriding the original property descriptor.
+ * @param {number} overrideVersion The override version. Only the most recent override will take effect.
+ * @returns {void}
+ */
+export const overrideOwnPropertyDescriptor = (host, name, applyOverride, overrideVersion = 1) => {
+  if (!isObject(host)) {
+    return;
+  }
+
+  const overrideKey = getUniqueKey(`${name}_override_version`);
+
+  if (overrideVersion > (Number(host[overrideKey]) || 0)) {
+    Object.defineProperty(
+      host,
+      name,
+      applyOverride(Object.getOwnPropertyDescriptor(host, name))
+    );
+  }
+};
+
+/**
  * @type {string}
  */
 const TOOLBOX_IFRAME_ID = getUniqueKey('logging_iframe');

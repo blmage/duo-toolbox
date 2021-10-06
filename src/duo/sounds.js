@@ -1,5 +1,6 @@
 import { _, _1, _2, _3, it, lift } from 'one-liner.macro';
-import { getUniqueKey } from '../utils/internal';
+import { hasObjectProperty, isNumber, isObject } from '../utils/functions';
+import { getUniqueKey, overrideInstanceMethod, overrideOwnPropertyDescriptor } from '../utils/internal';
 
 /**
  * @type {boolean}
@@ -82,50 +83,183 @@ export const SOUND_SETTING_RATE = 'rate';
  */
 export const SOUND_SETTING_VOLUME = 'volume'
 
+
+/**
+ * @type {string}
+ */
+const FORCED_SETTING_KEY = getUniqueKey('forced_setting');
+
+/**
+ * @param {*} value A setting value that was passed to a setter.
+ * @returns {boolean} Whether the value is a forced setting value.
+ */
+const isForcedSettingValue = value => isObject(value) && !!value[FORCED_SETTING_KEY];
+
+/**
+ * @type {Function}
+ * @param {object} forcedValue A forced setting value.
+ * @returns {number} The corresponding base value.
+ */
+const getForcedSettingBaseValue = _.value;
+
+/**
+ * @type {Function}
+ * @param {number} A base setting value.
+ * @returns {object} The given value, wrapped in a layer that identifies it as a forced value.
+ */
+const wrapForcedSettingBaseValue = { [FORCED_SETTING_KEY]: true, value: _ };
+
+/**
+ * @param {string} code The code of a sound setting.
+ * @param {*} value A value for the given setting.
+ * @returns {boolean} Whether the value is suitable for being applied to a "Howl" object from the "howler.js" library.
+ */
+const isValidHowlSettingValue = (code, value) => (
+  (SOUND_SETTING_RATE === code) && isNumber(value)
+  || (SOUND_SETTING_VOLUME === code) && (value >= 0) && (value <= 1)
+);
+
+/**
+ * Applies the necessary overrides to ensure that the forced setting values on "Audio" objects are correctly handled,
+ * and reapplied / recalculated whenever necessary.
+ *
+ * @param {string} code The code of a sound setting.
+ * @param {string} propertyName The name of the corresponding property on "Audio" objects.
+ * @returns {void}
+ */
+const applyAudioSettingPropertyOverride = (code, propertyName) => (
+  overrideOwnPropertyDescriptor(HTMLMediaElement, propertyName, originalDescriptor => ({
+    ...originalDescriptor,
+    set: function (value) {
+      const setting = SOUND_SETTINGS[code];
+
+      if (isNumber(value)) {
+        this[setting.originalValueKey] = value;
+
+        if (!this[setting.isRelativeKey]) {
+          value = this[setting.valueKey];
+        } else {
+          value = clampSoundSettingValue(code, value * this[setting.valueKey]);
+        }
+      } else if (isForcedSettingValue(value)) {
+        value = getForcedSettingBaseValue(value);
+      }
+
+      if (isNumber(value)) {
+        this[setting.listenerValueKey] = value;
+      }
+
+      originalDescriptor.set.call(this, value);
+    }
+  }))
+);
+
+/**
+ * Applies the necessary overrides to ensure that the forced setting values on "Howl" objects are correctly handled,
+ * and reapplied / recalculated whenever necessary.
+ *
+ * @param {string} code The code of a sound setting.
+ * @param {string} functionName The name of the function usable to manage the setting for "Howl" objects.
+ * @returns {void}
+ */
+const applyHowlSettingFunctionOverride = (code, functionName) => (
+  overrideInstanceMethod('Howl', functionName, originalHowlSetter => function () {
+    const self = this;
+    const args = arguments;
+    const setting = SOUND_SETTINGS[code];
+
+    let isValueUpdate = false;
+    const originalQueueSize = self._queue.length;
+
+    if (
+      (args.length === 1)
+      || ((args.length === 2) && (typeof args[1] === 'undefined'))
+    ) {
+      if (self._getSoundIds().indexOf(args[0]) === -1) {
+        if (isForcedSettingValue(args[0])) {
+          isValueUpdate = true;
+          args[0] = getForcedSettingBaseValue(args[0]);
+        } else if (isValidHowlSettingValue(code, args[0])) {
+          isValueUpdate = true;
+          self[setting.originalValueKey] = args[0];
+          args[0] = clampSoundSettingValue(code, self[setting.valueKey] * (!self[setting.isRelativeKey] ? 1 : args[0]));
+        }
+
+        if (isValueUpdate) {
+          self[setting.listenerValueKey] = args[0];
+        }
+      }
+    }
+
+    const result = originalHowlSetter.apply(self, arguments);
+
+    if (isValueUpdate && (originalQueueSize < self._queue.length)) {
+      self._queue[self._queue.length - 1].action = function () {
+        args[0] = wrapForcedSettingBaseValue(args[0]);
+        self[functionName](...args);
+      };
+    }
+
+    return result;
+  })
+);
+
+/**
+ * @param {string} code The code of a sound setting.
+ * @param {string} audioPropertyName The name of the corresponding property on "Audio" objects.
+ * @param {string} howlFunctionName The name of the corresponding function on "Howl" objects.
+ * @param {object} baseConfig The base configuration data for the setting.
+ * @returns {object} Full configuration data for the given setting.
+ */
+const prepareSoundSettingConfig = (code, audioPropertyName, howlFunctionName, baseConfig) => (
+  {
+    ...baseConfig,
+    functions: {
+      [SOUND_PLAYBACK_STRATEGY_AUDIO]: {
+        applyOverride: () => applyAudioSettingPropertyOverride(code, howlFunctionName),
+        getter: lift(_[audioPropertyName]),
+        setter: lift(_[audioPropertyName] = _),
+        hasQueuedUpdate: () => false,
+      },
+      [SOUND_PLAYBACK_STRATEGY_HOWLER]: {
+        applyOverride: () => applyHowlSettingFunctionOverride(code, howlFunctionName),
+        getter: lift(_[howlFunctionName]()),
+        setter: lift(it[howlFunctionName](_)),
+        hasQueuedUpdate: lift(it._queue.find(it.event === howlFunctionName)),
+      },
+    },
+    priorityKey: getUniqueKey(`${code}_priority`),
+    isRelativeKey: getUniqueKey(`${code}_is_relative`),
+    valueKey: getUniqueKey(`forced_${code}_value`),
+    originalValueKey: getUniqueKey(`original_${code}_value`),
+    listenerValueKey: getUniqueKey(`${code}_value`), // This value is used for compatibility with old versions.
+  }
+);
+
 /**
  * @type {Object}
  */
 const SOUND_SETTINGS = {
-  [SOUND_SETTING_RATE]: {
-    functions: {
-      [SOUND_PLAYBACK_STRATEGY_AUDIO]: {
-        getter: lift(_.playbackRate),
-        setter: lift(_.playbackRate = _),
-        addListener: lift(it.addEventListener('ratechange', _)),
-      },
-      [SOUND_PLAYBACK_STRATEGY_HOWLER]: {
-        getter: lift(_.rate()),
-        setter: lift(it.rate(_)),
-        addListener: lift(it.on('rate', _)),
-      },
-    },
-    minValue: 0.5,
-    maxValue: 4.0,
-    defaultValue: 1.0,
-    valueKey: getUniqueKey('rate_value'),
-    priorityKey: getUniqueKey('rate_priority'),
-    hasListenerKey: getUniqueKey('has_rate_listener'),
-  },
-  [SOUND_SETTING_VOLUME]: {
-    functions: {
-      [SOUND_PLAYBACK_STRATEGY_AUDIO]: {
-        getter: lift(_.volume),
-        setter: lift(_.volume = _),
-        addListener: lift(it.addEventListener('volumechange', _)),
-      },
-      [SOUND_PLAYBACK_STRATEGY_HOWLER]: {
-        getter: lift(_.volume()),
-        setter: lift(it.volume(_)),
-        addListener: lift(it.on('volume', _)),
-      },
-    },
-    minValue: 0.0,
-    maxValue: 1.0,
-    defaultValue: 1.0,
-    valueKey: getUniqueKey('volume_value'),
-    priorityKey: getUniqueKey('volume_priority'),
-    hasListenerKey: getUniqueKey('has_volume_listener'),
-  },
+  [SOUND_SETTING_RATE]: prepareSoundSettingConfig(
+    SOUND_SETTING_RATE,
+    'playbackRate',
+    'rate',
+    {
+      minValue: 0.5,
+      maxValue: 4.0,
+      defaultValue: 1.0,
+    }
+  ),
+  [SOUND_SETTING_VOLUME]: prepareSoundSettingConfig(
+    SOUND_SETTING_VOLUME,
+    'volume',
+    'volume',
+    {
+      minValue: 0.0,
+      maxValue: 1.0,
+      defaultValue: 1.0,
+    }
+  ),
 };
 
 /**
@@ -181,11 +315,11 @@ export const getSoundSettingDefaultValue = getSoundSetting(_).defaultValue;
  * @param {number} value A value for the given setting.
  * @returns {number} The given value, clamped if necessary.
  */
-export const clampSoundSettingValue = (code, value) => {
-  const setting = getSoundSetting(code);
-
-  return Math.max(setting.minValue, Math.min(value, setting.maxValue));
-};
+export const clampSoundSettingValue = (code, value) => (
+  !SOUND_SETTINGS[code]
+    ? value
+    : Math.max(SOUND_SETTINGS[code].minValue, Math.min(value, SOUND_SETTINGS[code].maxValue))
+);
 
 /**
  * @type {Function}
@@ -205,36 +339,37 @@ export const getSoundSettingValue = getSoundSettingFunctions(_1, _3).getter(_2);
  * @param {number} value The new setting value.
  * @param {*} sound A sound object, whose type depends on the playback strategy.
  * @param {string} playbackStrategy The strategy used for playing the sound.
+ * @param {boolean} isRelative Whether the forced value should be combined with the original value.
  * @param {?number} priority The priority of the new setting value.
  * @returns {void}
  */
-export const setSoundSettingValue = (code, value, sound, playbackStrategy, priority = 1) => {
+export const setSoundSettingValue = (code, value, sound, playbackStrategy, isRelative = false, priority = 1) => {
   const setting = getSoundSetting(code);
 
   if (priority >= (Number(sound[setting.priorityKey]) || 0)) {
+    const baseValue = clampSoundSettingValue(code, value);
     const functions = getSoundSettingFunctions(code, playbackStrategy);
-    const clampedValue = Math.max(setting.minValue, Math.min(value, setting.maxValue));
 
-    sound[setting.valueKey] = clampedValue;
+    functions.applyOverride();
+
+    sound[setting.valueKey] = baseValue;
     sound[setting.priorityKey] = priority;
-    functions.setter(sound, clampedValue);
+    sound[setting.isRelativeKey] = isRelative;
 
-    if (!sound[setting.hasListenerKey]) {
-      sound[setting.hasListenerKey] = true;
+    if (!hasObjectProperty(sound, setting.originalValueKey)) {
+      sound[setting.originalValueKey] = functions.getter(sound);
+    }
 
-      functions.addListener(sound, () => {
-        const newValue = functions.getter(sound);
-
-        if (newValue !== sound[setting.valueKey]) {
-          setSoundSettingValue(
+    if (!functions.hasQueuedUpdate(sound)) {
+      functions.setter(
+        sound,
+        wrapForcedSettingBaseValue(
+          clampSoundSettingValue(
             code,
-            sound[setting.valueKey],
-            sound,
-            playbackStrategy,
-            sound[setting.priorityKey]
-          );
-        }
-      });
+            baseValue * (!isRelative ? 1 : sound[setting.originalValueKey])
+          )
+        )
+      );
     }
   }
 };
