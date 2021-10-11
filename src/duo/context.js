@@ -39,7 +39,7 @@ const PAGE_URL_REGEXP_FORUM_COMMENT = /forum\.duolingo\.com\/comment\/(?<comment
 /**
  * @type {RegExp}
  */
-const PAGE_URL_REGEXP_DICTIONARY = /duolingo\.com\/dictionary\/(?<language>.+)\/(?<lexeme>.+)\/(?<lexeme_id>[\w]+)\//;
+const PAGE_URL_REGEXP_DICTIONARY = /duolingo\.com\/dictionary\/(?<language>.+)\/(?<lexeme>.+)\/(?<lexeme_id>[\w]+)\/?/;
 
 /**
  * @type {string}
