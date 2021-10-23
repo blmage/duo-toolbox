@@ -23,6 +23,13 @@ export const SOUND_TYPE_TTS_SENTENCE = 'tts_sentence';
 export const SOUND_TYPE_TTS_WORD = 'tts_word';
 
 /**
+ * A character or a syllable.
+ *
+ * @type {string}
+ */
+export const SOUND_TYPE_TTS_MORPHEME = 'tts_morpheme';
+
+/**
  * @type {string}
  */
 export const SOUND_TYPE_UNKNOWN = 'unknown';
@@ -34,6 +41,7 @@ export const SOUND_TYPES = [
   SOUND_TYPE_EFFECT,
   SOUND_TYPE_TTS_SENTENCE,
   SOUND_TYPE_TTS_WORD,
+  SOUND_TYPE_TTS_MORPHEME,
   SOUND_TYPE_UNKNOWN,
 ];
 
