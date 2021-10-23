@@ -19,6 +19,11 @@ export const CONTEXT_FORUM_DISCUSSION = 'forum_discussion';
 /**
  * @type {string}
  */
+export const CONTEXT_CHARACTERS = 'characters';
+
+/**
+ * @type {string}
+ */
 export const CONTEXT_DICTIONARY = 'dictionary';
 
 /**
@@ -35,6 +40,11 @@ const PAGE_URL_REGEXP_STORY = /duolingo\.com\/stories\/(?<story_key>[^/]+)/;
  * @type {RegExp}
  */
 const PAGE_URL_REGEXP_FORUM_COMMENT = /forum\.duolingo\.com\/comment\/(?<comment_id>[\d]+)/;
+
+/**
+ * @type {RegExp}
+ */
+const PAGE_URL_REGEXP_CHARACTERS = /duolingo\.com\/characters\/?/;
 
 /**
  * @type {RegExp}
@@ -92,6 +102,14 @@ export const getCurrentContext = () => {
     return {
       type: CONTEXT_STORY,
       storyKey: urlMatches?.story_key,
+    };
+  }
+
+  // Characters
+
+  if (url.match(PAGE_URL_REGEXP_CHARACTERS)) {
+    return {
+      type: CONTEXT_CHARACTERS,
     };
   }
 
