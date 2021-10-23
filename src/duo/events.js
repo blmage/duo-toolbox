@@ -17,13 +17,10 @@ import { getUrlPath, isArray, isBlob, isEmptyObject, isObject, isString } from '
 import { logError } from '../utils/logging';
 
 import {
-  CHALLENGE_TYPE_CHARACTER_MATCH,
-  CHALLENGE_TYPE_CHARACTER_SELECT,
-  CHALLENGE_TYPE_SELECT_PRONUNCIATION,
-  CHALLENGE_TYPE_SELECT_TRANSCRIPTION,
   getChallengeSourceLanguage,
   getChallengeTargetLanguage,
-  getChallengeType
+  getChallengeType,
+  MORPHEME_LISTENING_CHALLENGE_TYPES,
 } from './challenges';
 
 import { parseCourse } from './courses';
@@ -589,7 +586,11 @@ const registerPracticeChallengesSoundsData = challenges => {
 
     if (isString(challenge.tts)) {
       // The challenge statement.
-      challengeSounds.push(getNormalSentenceSoundData(challenge.tts, sourceLanguage));
+      const getTtsSoundData = (MORPHEME_LISTENING_CHALLENGE_TYPES.indexOf(challengeType) >= 0)
+        ? getNormalMorphemeSoundData
+        : getNormalSentenceSoundData;
+
+      challengeSounds.push(getTtsSoundData(challenge.tts, sourceLanguage));
     }
 
     if (isString(challenge.slowTts)) {
@@ -604,13 +605,7 @@ const registerPracticeChallengesSoundsData = challenges => {
 
     if (isArray(challenge.choices)) {
       // The possible choices for MCQ-like challenges, or the available words for the word banks.
-      const getChoiceSoundData = (
-        [
-          CHALLENGE_TYPE_CHARACTER_SELECT,
-          CHALLENGE_TYPE_SELECT_PRONUNCIATION,
-          CHALLENGE_TYPE_SELECT_TRANSCRIPTION,
-        ].indexOf(challengeType) === -1
-      )
+      const getChoiceSoundData = (MORPHEME_LISTENING_CHALLENGE_TYPES.indexOf(challengeType) === -1)
         ? getNormalWordSoundData
         : getNormalMorphemeSoundData;
 
@@ -665,7 +660,7 @@ const registerPracticeChallengesSoundsData = challenges => {
 
     if (isArray(challenge.pairs)) {
       // The pairs of characters or words for matching challenges.
-      const getPairSoundData = ([ CHALLENGE_TYPE_CHARACTER_MATCH ].indexOf(challengeType) === -1)
+      const getPairSoundData = (MORPHEME_LISTENING_CHALLENGE_TYPES.indexOf(challengeType) === -1)
         ? getNormalWordSoundData
         : getNormalMorphemeSoundData;
 
