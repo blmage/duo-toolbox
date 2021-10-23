@@ -1,3 +1,5 @@
+import { _ } from 'one-liner.macro';
+
 /**
  * @type {string}
  */
