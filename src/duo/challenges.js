@@ -206,6 +206,13 @@ export const ALL_LISTENING_CHALLENGE_TYPES = [
 ];
 
 /**
+ * @type {Function}
+ * @param {object} challenge A challenge.
+ * @returns {string} The type of the challenge.
+ */
+export const getChallengeType = _.type;
+
+/**
  * @param {object} challenge A challenge.
  * @returns {string} The language used by the statement of the challenge.
  */

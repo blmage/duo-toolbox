@@ -15,7 +15,17 @@ import {
 
 import { getUrlPath, isArray, isBlob, isEmptyObject, isObject, isString } from '../utils/functions';
 import { logError } from '../utils/logging';
-import { getChallengeSourceLanguage, getChallengeTargetLanguage } from './challenges';
+
+import {
+  CHALLENGE_TYPE_CHARACTER_MATCH,
+  CHALLENGE_TYPE_CHARACTER_SELECT,
+  CHALLENGE_TYPE_SELECT_PRONUNCIATION,
+  CHALLENGE_TYPE_SELECT_TRANSCRIPTION,
+  getChallengeSourceLanguage,
+  getChallengeTargetLanguage,
+  getChallengeType
+} from './challenges';
+
 import { parseCourse } from './courses';
 
 import {
@@ -25,9 +35,10 @@ import {
   SOUND_SPEED_NORMAL,
   SOUND_SPEED_SLOW,
   SOUND_TYPE_EFFECT,
-  SOUND_TYPE_UNKNOWN,
+  SOUND_TYPE_TTS_MORPHEME,
   SOUND_TYPE_TTS_SENTENCE,
   SOUND_TYPE_TTS_WORD,
+  SOUND_TYPE_UNKNOWN,
 } from './sounds';
 
 /**
@@ -455,6 +466,18 @@ const getNormalWordSoundData = (url, language) => ({
 });
 
 /**
+ * @param {string} url The URL of the morpheme sound.
+ * @param {string} language The language of the morpheme.
+ * @returns {SoundData} Relevant data about the given sound.
+ */
+const getNormalMorphemeSoundData = (url, language) => ({
+  url,
+  type: SOUND_TYPE_TTS_MORPHEME,
+  speed: SOUND_SPEED_NORMAL,
+  language,
+});
+
+/**
  * @type {Object<string, SoundData>}
  */
 const DEFAULT_SOUNDS_DATA_MAP = Object.fromEntries(
@@ -560,6 +583,7 @@ const registerPracticeChallengesSoundsData = challenges => {
   const challengeSounds = [];
 
   for (const challenge of challenges) {
+    const challengeType = getChallengeType(challenge);
     const sourceLanguage = getChallengeSourceLanguage(challenge);
     const targetLanguage = getChallengeTargetLanguage(challenge);
 
@@ -580,11 +604,21 @@ const registerPracticeChallengesSoundsData = challenges => {
 
     if (isArray(challenge.choices)) {
       // The possible choices for MCQ-like challenges, or the available words for the word banks.
+      const getChoiceSoundData = (
+        [
+          CHALLENGE_TYPE_CHARACTER_SELECT,
+          CHALLENGE_TYPE_SELECT_PRONUNCIATION,
+          CHALLENGE_TYPE_SELECT_TRANSCRIPTION,
+        ].indexOf(challengeType) === -1
+      )
+        ? getNormalWordSoundData
+        : getNormalMorphemeSoundData;
+
       challengeSounds.push(
         challenge.choices
           .map(it?.tts)
           .filter(isString)
-          .map(getNormalWordSoundData(_, targetLanguage))
+          .map(getChoiceSoundData(_, targetLanguage))
       );
     }
 
@@ -631,11 +665,15 @@ const registerPracticeChallengesSoundsData = challenges => {
 
     if (isArray(challenge.pairs)) {
       // The pairs of characters or words for matching challenges.
+      const getPairSoundData = ([ CHALLENGE_TYPE_CHARACTER_MATCH ].indexOf(challengeType) === -1)
+        ? getNormalWordSoundData
+        : getNormalMorphemeSoundData;
+
       challengeSounds.push(
         challenge.pairs
           .map(it?.tts)
           .filter(isString)
-          .map(getNormalWordSoundData(_, targetLanguage))
+          .map(getPairSoundData(_, targetLanguage))
       );
     }
 
