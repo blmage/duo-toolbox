@@ -4,6 +4,7 @@
 </h1>
 
 [![DeepScan grade](https://deepscan.io/api/teams/9459/projects/18086/branches/433546/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=9459&pid=18086&bid=433546)
+[![ESLint](https://github.com/blmage/duo-toolbox/actions/workflows/eslint.yml/badge.svg)](https://github.com/blmage/duo-toolbox/actions/workflows/eslint.yml)
 
 A set of general and specialized tools for building browser extensions and user scripts targeting Duolingo.
 
