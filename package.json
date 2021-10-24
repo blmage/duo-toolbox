@@ -30,6 +30,6 @@
     "babel-plugin-macros": "^2.8.0",
     "eslint": "^7.31.0",
     "eslint-plugin-jsdoc": "^30.7.13",
-    "one-liner.macro": "git+https://github.com/blmage/one-liner.macro.git"
+    "one-liner.macro": "git+https://github.com/blmage/one-liner.macro.git#semver:^3.3.0"
   }
 }
