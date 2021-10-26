@@ -68,11 +68,10 @@ const setEventListeners = (event, listeners) => {
 };
 
 /**
- * @type {Function}
  * @param {string} event An event type.
  * @returns {boolean} Whether any listener is registered for the given event type.
  */
-const hasEventListeners = !isEmptyObject(getEventListeners(_));
+const hasEventListeners = event => !isEmptyObject(getEventListeners(event));
 
 /**
  * @type {Function}
