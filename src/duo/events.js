@@ -20,7 +20,7 @@ import {
   getChallengeSourceLanguage,
   getChallengeTargetLanguage,
   getChallengeType,
-  MORPHEME_LISTENING_CHALLENGE_TYPES,
+  MORPHEME_CHALLENGE_TYPES,
 } from './challenges';
 
 import { parseCourse } from './courses';
@@ -68,6 +68,7 @@ const setEventListeners = (event, listeners) => {
 };
 
 /**
+ * @type {Function}
  * @param {string} event An event type.
  * @returns {boolean} Whether any listener is registered for the given event type.
  */
@@ -228,6 +229,11 @@ const EVENT_TYPE_STORY_LOADED = 'story_loaded';
 /**
  * @type {string}
  */
+const EVENT_TYPE_ALPHABETS_LOADED = 'alphabets_loaded';
+
+/**
+ * @type {string}
+ */
 const EVENT_TYPE_FORUM_DISCUSSION_LOADED = 'forum_discussion_loaded';
 
 /**
@@ -264,6 +270,7 @@ const EVENT_TYPE_UI_LOADED = 'ui_loaded';
  * @type {object<string, RegExp>}
  */
 const XHR_REQUEST_EVENT_URL_REGEXPS = {
+  [EVENT_TYPE_ALPHABETS_LOADED]: /\/[\d]{4}-[\d]{2}-[\d]{2}\/alphabets\/courses\/(?<toLanguage>[^/]+)\/(?<fromLanguage>[^/]+)\//g,
   [EVENT_TYPE_DICTIONARY_LEXEME_LOADED]: /\/api\/1\/dictionary_page/g,
   [EVENT_TYPE_FORUM_DISCUSSION_LOADED]: /\/comments\/([\d]+)/g,
   [EVENT_TYPE_PRACTICE_SESSION_LOADED]: /\/[\d]{4}-[\d]{2}-[\d]{2}\/sessions/g,
@@ -281,9 +288,12 @@ const registerXhrRequestEventListener = (event, callback, listenerId = getUnique
   overrideInstanceMethod('XMLHttpRequest', 'open', originalXhrOpen => (
     function (method, url, async, user, password) {
       let event;
+      let urlMatches;
 
       for (const [ requestEvent, urlRegExp ] of Object.entries(XHR_REQUEST_EVENT_URL_REGEXPS)) {
-        if (url.match(urlRegExp)) {
+        urlMatches = url.matchAll(urlRegExp);
+
+        if (urlMatches) {
           event = requestEvent;
           break;
         }
@@ -294,7 +304,7 @@ const registerXhrRequestEventListener = (event, callback, listenerId = getUnique
           this.addEventListener('load', () => {
             try {
               const data = isObject(this.response) ? this.response : JSON.parse(this.responseText);
-              listeners.forEach(it(data));
+              listeners.forEach(it(data, urlMatches.groups || {}));
             } catch (error) {
               logError(error, `Could not handle the XHR result (event: ${event}): `);
             }
@@ -304,7 +314,7 @@ const registerXhrRequestEventListener = (event, callback, listenerId = getUnique
 
       return originalXhrOpen.call(this, method, url, async, user, password);
     }
-  ));
+  ), 2);
 
   return registerEventListener(event, callback, listenerId);
 };
@@ -329,6 +339,13 @@ export const onPracticeSessionLoaded = registerXhrRequestEventListener(EVENT_TYP
  * @returns {Function} A function usable to stop being notified of newly loaded stories.
  */
 export const onStoryLoaded = registerXhrRequestEventListener(EVENT_TYPE_STORY_LOADED, _);
+
+/**
+ * @type {Function}
+ * @param {Function} callback The function to be called with the response and request data when alphabets are loaded.
+ * @returns {Function} A function usable to stop being notified of newly loaded alphabets.
+ */
+export const onAlphabetsLoaded = registerXhrRequestEventListener(EVENT_TYPE_ALPHABETS_LOADED, _, _);
 
 /**
  * @type {Function}
@@ -554,6 +571,16 @@ const registerSoundsData = newData => {
 };
 
 /**
+ * @type {number}
+ */
+const SOUND_DETECTION_LISTENERS_VERSION = 2;
+
+/**
+ * @type {string}
+ */
+const KEY_SOUND_DETECTION_LISTENERS_VERSION = 'sound_detection_listeners_version';
+
+/**
  * @type {string}
  */
 const KEY_SOUND_DETECTION_UNREGISTRATION_CALLBACKS = 'sound_detection_unregistration_callbacks';
@@ -585,7 +612,7 @@ const registerPracticeChallengesSoundsData = challenges => {
 
     if (isString(challenge.tts)) {
       // The challenge statement.
-      const getTtsSoundData = (MORPHEME_LISTENING_CHALLENGE_TYPES.indexOf(challengeType) >= 0)
+      const getTtsSoundData = (MORPHEME_CHALLENGE_TYPES.indexOf(challengeType) >= 0)
         ? getNormalMorphemeSoundData
         : getNormalSentenceSoundData;
 
@@ -604,7 +631,7 @@ const registerPracticeChallengesSoundsData = challenges => {
 
     if (isArray(challenge.choices)) {
       // The possible choices for MCQ-like challenges, or the available words for the word banks.
-      const getChoiceSoundData = (MORPHEME_LISTENING_CHALLENGE_TYPES.indexOf(challengeType) === -1)
+      const getChoiceSoundData = (MORPHEME_CHALLENGE_TYPES.indexOf(challengeType) === -1)
         ? getNormalWordSoundData
         : getNormalMorphemeSoundData;
 
@@ -659,7 +686,7 @@ const registerPracticeChallengesSoundsData = challenges => {
 
     if (isArray(challenge.pairs)) {
       // The pairs of characters or words for matching challenges.
-      const getPairSoundData = (MORPHEME_LISTENING_CHALLENGE_TYPES.indexOf(challengeType) === -1)
+      const getPairSoundData = (MORPHEME_CHALLENGE_TYPES.indexOf(challengeType) === -1)
         ? getNormalWordSoundData
         : getNormalMorphemeSoundData;
 
@@ -682,7 +709,7 @@ const registerPracticeChallengesSoundsData = challenges => {
  * @returns {void}
  */
 const registerStorySoundsData = story => {
-  isArray(story.elements)
+  isArray(story?.elements)
   && registerSoundsData(
     story.elements
       .map(it?.line?.content || it?.learningLanguageTitleContent)
@@ -694,11 +721,30 @@ const registerStorySoundsData = story => {
 };
 
 /**
+ * @param {object} payload The response payload.
+ * @param {object} languages Language data from the alphabets request.
+ * @returns {void}
+ */
+const registerAlphabetsSoundsData = (payload, languages) => {
+  isArray(payload?.alphabets)
+  && isString(languages?.toLanguage)
+  && registerSoundsData(
+    payload.alphabets
+      .flatMap(it?.groups)
+      .flatMap(it?.characters)
+      .flat()
+      .map(it?.ttsUrl)
+      .filter(isString)
+      .map(getNormalMorphemeSoundData(_, languages.toLanguage))
+  )
+};
+
+/**
  * @param {object} discussion A forum discussion.
  * @returns {void}
  */
 const registerForumDiscussionSoundsData = discussion => {
-  isString(discussion.tts_url)
+  isString(discussion?.tts_url)
   && registerSoundsData([ getNormalSentenceSoundData(discussion.tts_url, discussion.sentence_language) ])
 };
 
@@ -732,11 +778,25 @@ const registerDictionaryLexemeSoundsData = lexeme => {
  * @returns {void}
  */
 const registerSoundDetectionListeners = () => {
-  if (!getSharedGlobalVariable(KEY_SOUND_DETECTION_UNREGISTRATION_CALLBACKS)) {
+  const listenersVersion = Number(getSharedGlobalVariable(KEY_SOUND_DETECTION_LISTENERS_VERSION));
+  const isDetectionActive = !!getSharedGlobalVariable(KEY_SOUND_DETECTION_UNREGISTRATION_CALLBACKS);
+  const isDetectionUpToDate = SOUND_DETECTION_LISTENERS_VERSION <= (listenersVersion || 0);
+
+  if (!isDetectionActive || !isDetectionUpToDate) {
+    if (!isDetectionUpToDate) {
+      unregisterUnusedSoundDetectionListeners();
+    }
+
+    setSharedGlobalVariable(
+      KEY_SOUND_DETECTION_LISTENERS_VERSION,
+      SOUND_DETECTION_LISTENERS_VERSION
+    );
+
     setSharedGlobalVariable(
       KEY_SOUND_DETECTION_UNREGISTRATION_CALLBACKS,
       [
         onStoryLoaded(registerStorySoundsData(_)),
+        onAlphabetsLoaded(registerAlphabetsSoundsData(_, _)),
         onForumDiscussionLoaded(registerForumDiscussionSoundsData(_)),
         onDictionaryLexemeLoaded(registerDictionaryLexemeSoundsData(_)),
         onPracticeChallengesLoaded(registerPracticeChallengesSoundsData(_.challenges)),
@@ -762,6 +822,7 @@ const unregisterUnusedSoundDetectionListeners = () => {
     && !hasEventListeners(EVENT_TYPE_SOUND_PLAYBACK_CONFIRMED)
   ) {
     unregistrationCallbacks.forEach(it());
+    setSharedGlobalVariable(KEY_SOUND_DETECTION_LISTENERS_VERSION, null);
     setSharedGlobalVariable(KEY_SOUND_DETECTION_UNREGISTRATION_CALLBACKS, null);
   }
 };
