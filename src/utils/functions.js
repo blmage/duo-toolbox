@@ -94,6 +94,28 @@ export const isEmptyObject = object => {
 export const isSupersetOf = _.every(_.indexOf(_) >= 0);
 
 /**
+ * @param {Function[]} comparators Proper comparators to be used in order, as long as the two values are deemed equal.
+ * @param {*} x A value.
+ * @param {*} y Another value.
+ * @returns {number}
+ * A number:
+ * - < 0 if x <  y,
+ * - > 0 if x >  y,
+ * -   0 if x == y.
+ */
+export const compareWith = (comparators, x, y) => {
+  for (const comparator of comparators) {
+    const result = Number(comparator(x, y));
+
+    if (!isNaN(result) && (result !== 0)) {
+      return result;
+    }
+  }
+
+  return 0;
+};
+
+/**
  * @type {Function}
  * @param {*} x A value.
  * @param {*} y Another value.
@@ -110,21 +132,21 @@ const gt = (_ > _);
 const lt = (_ < _);
 
 /**
- * @param {Function} compare A comparison function.
+ * @param {Function} comparator A comparison function.
  * @returns {Function} The inverse of the given comparison function.
  */
-export const invertComparison = compare => (x, y) => {
-  const result = compare(x, y);
+export const invertComparison = comparator => (x, y) => {
+  const result = comparator(x, y);
   return (result < 0) ? 1 : ((result > 0) ? -1 : 0);
 }
 
 /**
  * @param {Array} values A list of values.
  * @param {Function} getter A getter for the calculated values to compare.
- * @param {Function} comparer A function usable to compare any two calculated values, and determine which one to keep.
+ * @param {Function} comparator A function usable to compare any two calculated values, and determine which one to keep.
  * @returns {*|undefined} The (first) value from the list whose corresponding calculated value was selected.
  */
-export const extremumBy = (values, getter, comparer) => {
+export const extremumBy = (values, getter, comparator) => {
   let selected;
   let extremum;
 
@@ -132,7 +154,7 @@ export const extremumBy = (values, getter, comparer) => {
     for (let i = 0, l = values.length; i < l; i++) {
       const calculated = getter(values[i]);
 
-      if ((undefined === extremum) || comparer(calculated, extremum)) {
+      if ((undefined === extremum) || comparator(calculated, extremum)) {
         selected = values[i];
         extremum = calculated;
       }
