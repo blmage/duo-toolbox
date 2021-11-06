@@ -94,7 +94,7 @@ export const isEmptyObject = object => {
 export const isSupersetOf = _.every(_.indexOf(_) >= 0);
 
 /**
- * @param {Function[]} comparators Proper comparators to be used in order, as long as the two values are deemed equal.
+ * @param {Function[]} comparators The proper comparators to use in order, as long as the two values are deemed equal.
  * @param {*} x A value.
  * @param {*} y Another value.
  * @returns {number}

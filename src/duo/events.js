@@ -13,7 +13,7 @@ import {
   updateSharedGlobalVariable,
 } from '../utils/internal';
 
-import { getUrlPath, isArray, isBlob, isEmptyObject, isObject, isString } from '../utils/functions';
+import { compareWith, getUrlPath, isArray, isBlob, isEmptyObject, isObject, isString } from '../utils/functions';
 import { logError } from '../utils/logging';
 
 import {
@@ -557,6 +557,44 @@ const getSoundData = path => {
 }
 
 /**
+ * @type {string[]}
+ */
+const SOUND_TYPE_RELEVANCE = [
+  SOUND_TYPE_UNKNOWN,
+  SOUND_TYPE_TTS_SENTENCE,
+  SOUND_TYPE_TTS_WORD,
+  SOUND_TYPE_TTS_MORPHEME,
+  SOUND_TYPE_EFFECT,
+];
+
+/**
+ * @type {string[]}
+ */
+const SOUND_SPEED_RELEVANCE = [
+  SOUND_SPEED_NORMAL,
+  SOUND_SPEED_SLOW,
+];
+
+/**
+ * @type {Function}
+ * @param {SoundData} dataA Some sound data.
+ * @param {SoundData} dataB Other sound data.
+ * @returns {number}
+ * A number:
+ * - > 0 if the first sound data are more relevant than the second,
+ * - < 0 if the second sound data are more relevant than the first,
+ * - 0, if both sound data are equally relevant.
+ */
+const compareSoundDataRelevance = compareWith(
+  [
+    lift(SOUND_TYPE_RELEVANCE.indexOf(_.type) - SOUND_TYPE_RELEVANCE.indexOf(_.type)),
+    lift(SOUND_SPEED_RELEVANCE.indexOf(_.speed) - SOUND_SPEED_RELEVANCE.indexOf(_.speed)),
+  ],
+  _,
+  _
+);
+
+/**
  * @param {SoundData[]} newData New data about a set of sounds.
  * @returns {void}
  */
@@ -564,7 +602,14 @@ const registerSoundsData = newData => {
   const soundsData = getSoundsDataMap() || {};
 
   for (const soundData of newData) {
-    soundsData[getUrlPath(soundData.url)] = soundData;
+    const path = getUrlPath(soundData.url);
+
+    if (
+      !soundsData[path]
+      || (compareSoundDataRelevance(soundData, soundsData[path]) > 0)
+    ) {
+      soundsData[path] = soundData;
+    }
   }
 
   setSharedGlobalVariable(KEY_SOUNDS_DATA_MAP, soundsData);
