@@ -25,7 +25,8 @@ to coexist nicely with the use of mutexes.
 > A browser extension providing access to the lists of solutions to the translation / listening challenges on Duolingo, 
 > and restoring the correction of typos for listening challenges.
 
-[view on Github](https://www.github.com)
+[view on Github](https://www.github.com/blmage/duolingo-solution-viewer)
+
 
 ---
 
@@ -39,7 +40,7 @@ to coexist nicely with the use of mutexes.
 
 > A small browser extension providing playback controls for some of the challenges on Duolingo.
 
-[view on Github](https://www.github.com)
+[view on Github](https://www.github.com/blmage/duolingo-tts-controls)
 
 ---
 
@@ -53,4 +54,4 @@ to coexist nicely with the use of mutexes.
 
 > A minimal browser extension for enabling the drag'n'drop of words in the word-bank answers on Duolingo.
 
-[view on Github](https://www.github.com)
+[view on Github](https://www.github.com/blmage/duolingo-word-bank-dnd)
