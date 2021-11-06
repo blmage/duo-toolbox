@@ -27,6 +27,19 @@ to coexist nicely with the use of mutexes.
 
 [view on Github](https://www.github.com/blmage/duolingo-solution-viewer)
 
+---
+
+<h4>
+    <img align="center" width="24" height="24" src="https://raw.githubusercontent.com/blmage/duolingo-sound-controls/master/dist/icons/icon_48.png" />
+    Duolingo Sound Controls
+</h4>
+
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/fdgmdpdkmbmoikgppbpdkcagdnhgkiih)](https://chrome.google.com/webstore/detail/duolingo-sound-controls/fdgmdpdkmbmoikgppbpdkcagdnhgkiih)
+[![Mozilla Add-on](https://img.shields.io/amo/v/duolingo-sound-controls)](https://addons.mozilla.org/firefox/addon/duolingo-sound-controls/)
+
+> A browser extension providing fine-grained sound controls for Duolingo.
+
+[view on Github](https://www.github.com/blmage/duolingo-sound-controls)
 
 ---
 
