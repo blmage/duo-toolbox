@@ -293,7 +293,7 @@ const registerXhrRequestEventListener = (event, callback, listenerId = getUnique
       for (const [ requestEvent, urlRegExp ] of Object.entries(XHR_REQUEST_EVENT_URL_REGEXPS)) {
         urlMatches = url.matchAll(urlRegExp);
 
-        if (urlMatches) {
+        if (Array.from(urlMatches).length > 0) {
           event = requestEvent;
           break;
         }
