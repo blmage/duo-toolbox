@@ -270,7 +270,7 @@ const EVENT_TYPE_UI_LOADED = 'ui_loaded';
  * @type {object<string, RegExp>}
  */
 const XHR_REQUEST_EVENT_URL_REGEXPS = {
-  [EVENT_TYPE_ALPHABETS_LOADED]: /\/[\d]{4}-[\d]{2}-[\d]{2}\/alphabets\/courses\/(?<toLanguage>[^/]+)\/(?<fromLanguage>[^/]+)\//g,
+  [EVENT_TYPE_ALPHABETS_LOADED]: /\/[\d]{4}-[\d]{2}-[\d]{2}\/alphabets\/courses\/(?<toLanguage>[^/]+)\/(?<fromLanguage>[^/?]+)\/?/g,
   [EVENT_TYPE_DICTIONARY_LEXEME_LOADED]: /\/api\/1\/dictionary_page/g,
   [EVENT_TYPE_FORUM_DISCUSSION_LOADED]: /\/comments\/([\d]+)/g,
   [EVENT_TYPE_PRACTICE_SESSION_LOADED]: /\/[\d]{4}-[\d]{2}-[\d]{2}\/sessions/g,
