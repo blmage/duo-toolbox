@@ -291,9 +291,9 @@ const registerXhrRequestEventListener = (event, callback, listenerId = getUnique
       let urlMatches;
 
       for (const [ requestEvent, urlRegExp ] of Object.entries(XHR_REQUEST_EVENT_URL_REGEXPS)) {
-        urlMatches = url.matchAll(urlRegExp);
+        urlMatches = Array.from(url.matchAll(urlRegExp))[0];
 
-        if (Array.from(urlMatches).length > 0) {
+        if (urlMatches) {
           event = requestEvent;
           break;
         }
