@@ -251,6 +251,21 @@ export const groupBy = (values, getter) => {
 }
 
 /**
+ * @param {Array} values A list of values.
+ * @param {Function} predicate A predicate.
+ * @returns {[ Array, Array ]} A pair of lists: first the values that match the predicate, then those that do not.
+ */
+export const partition = (values, predicate) => {
+  const result = [ [], [] ];
+
+  for (let i = 0, l = values.length; i < l; i++) {
+    result[predicate(values[i]) ? 0 : 1].push(values[i]);
+  }
+
+  return result;
+};
+
+/**
  * @param {Array[]} xss A list of arrays.
  * @returns {Array[]} The cartesian product of the given arrays.
  */
