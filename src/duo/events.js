@@ -743,6 +743,16 @@ const registerPracticeChallengesSoundsData = challenges => {
       );
     }
 
+    if (isArray(challenge.options)) {
+      // The choices for listening fill-in-the-blank challenges.
+      challengeSounds.push(
+        challenge.options
+          .map(it?.tts)
+          .filter(isString)
+          .map(getNormalWordSoundData(_, targetLanguage))
+      );
+    }
+
     // The "dialogue" data seems to be redundant with the "metadata.speakers" data, while less complete.
   }
 

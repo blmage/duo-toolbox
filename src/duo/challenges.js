@@ -63,6 +63,16 @@ export const CHALLENGE_TYPE_LISTEN_COMPREHENSION = 'listenComprehension';
 /**
  * @type {string}
  */
+export const CHALLENGE_TYPE_LISTEN_ISOLATION = 'listenIsolation';
+
+/**
+ * @type {string}
+ */
+export const CHALLENGE_TYPE_LISTEN_MATCH = 'listenMatch';
+
+/**
+ * @type {string}
+ */
 export const CHALLENGE_TYPE_LISTEN_TAP = 'listenTap';
 
 /**
@@ -156,6 +166,8 @@ export const CHALLENGE_TYPES = [
   CHALLENGE_TYPE_JUDGE,
   CHALLENGE_TYPE_LISTEN,
   CHALLENGE_TYPE_LISTEN_COMPREHENSION,
+  CHALLENGE_TYPE_LISTEN_ISOLATION,
+  CHALLENGE_TYPE_LISTEN_MATCH,
   CHALLENGE_TYPE_LISTEN_TAP,
   CHALLENGE_TYPE_NAME,
   CHALLENGE_TYPE_READ_COMPREHENSION,
@@ -197,7 +209,10 @@ export const MORPHEME_CHALLENGE_TYPES = [
 /**
  * @type {string[]}
  */
-export const WORD_LISTENING_CHALLENGE_TYPES = [];
+export const WORD_LISTENING_CHALLENGE_TYPES = [
+  CHALLENGE_TYPE_LISTEN_ISOLATION,
+  CHALLENGE_TYPE_LISTEN_MATCH,
+];
 
 /**
  * @type {string[]}
