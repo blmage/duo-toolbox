@@ -3,6 +3,11 @@ import { _ } from 'one-liner.macro';
 /**
  * @type {string}
  */
+export const CHALLENGE_TYPE_ASSIST = 'assist';
+
+/**
+ * @type {string}
+ */
 export const CHALLENGE_TYPE_CHARACTER_INTRO = 'characterIntro';
 
 /**
@@ -13,7 +18,17 @@ export const CHALLENGE_TYPE_CHARACTER_MATCH = 'characterMatch';
 /**
  * @type {string}
  */
+export const CHALLENGE_TYPE_CHARACTER_PUZZLE = 'characterPuzzle';
+
+/**
+ * @type {string}
+ */
 export const CHALLENGE_TYPE_CHARACTER_SELECT = 'characterSelect';
+
+/**
+ * @type {string}
+ */
+export const CHALLENGE_TYPE_CHARACTER_TRACE = 'characterTrace';
 
 /**
  * @type {string}
@@ -73,12 +88,27 @@ export const CHALLENGE_TYPE_LISTEN_MATCH = 'listenMatch';
 /**
  * @type {string}
  */
+export const CHALLENGE_TYPE_LISTEN_SPELL = 'listenSpell';
+
+/**
+ * @type {string}
+ */
 export const CHALLENGE_TYPE_LISTEN_TAP = 'listenTap';
 
 /**
  * @type {string}
  */
+export const CHALLENGE_TYPE_MATCH = 'match';
+
+/**
+ * @type {string}
+ */
 export const CHALLENGE_TYPE_NAME = 'name';
+
+/**
+ * @type {string}
+ */
+export const CHALLENGE_TYPE_PARTIAL_REVERSE_TRANSLATE = 'partialReverseTranslate';
 
 /**
  * @type {string}
@@ -154,9 +184,12 @@ export const CHALLENGE_TYPE_TYPE_COMPLETE_TABLE = 'typeCompleteTable';
  * @type {string[]}
  */
 export const CHALLENGE_TYPES = [
+  CHALLENGE_TYPE_ASSIST,
   CHALLENGE_TYPE_CHARACTER_INTRO,
   CHALLENGE_TYPE_CHARACTER_MATCH,
+  CHALLENGE_TYPE_CHARACTER_PUZZLE,
   CHALLENGE_TYPE_CHARACTER_SELECT,
+  CHALLENGE_TYPE_CHARACTER_TRACE,
   CHALLENGE_TYPE_COMPLETE_REVERSE_TRANSLATION,
   CHALLENGE_TYPE_DEFINITION,
   CHALLENGE_TYPE_DIALOGUE,
@@ -168,8 +201,11 @@ export const CHALLENGE_TYPES = [
   CHALLENGE_TYPE_LISTEN_COMPREHENSION,
   CHALLENGE_TYPE_LISTEN_ISOLATION,
   CHALLENGE_TYPE_LISTEN_MATCH,
+  CHALLENGE_TYPE_LISTEN_SPELL,
   CHALLENGE_TYPE_LISTEN_TAP,
+  CHALLENGE_TYPE_MATCH,
   CHALLENGE_TYPE_NAME,
+  CHALLENGE_TYPE_PARTIAL_REVERSE_TRANSLATE,
   CHALLENGE_TYPE_READ_COMPREHENSION,
   CHALLENGE_TYPE_SELECT,
   CHALLENGE_TYPE_SELECT_PRONUNCIATION,
@@ -201,7 +237,9 @@ export const MORPHEME_LISTENING_CHALLENGE_TYPES = [
 export const MORPHEME_CHALLENGE_TYPES = [
   CHALLENGE_TYPE_CHARACTER_INTRO,
   CHALLENGE_TYPE_CHARACTER_MATCH,
+  CHALLENGE_TYPE_CHARACTER_PUZZLE,
   CHALLENGE_TYPE_CHARACTER_SELECT,
+  CHALLENGE_TYPE_CHARACTER_TRACE,
   CHALLENGE_TYPE_SELECT_PRONUNCIATION,
   CHALLENGE_TYPE_SELECT_TRANSCRIPTION,
 ];
@@ -210,6 +248,7 @@ export const MORPHEME_CHALLENGE_TYPES = [
  * @type {string[]}
  */
 export const WORD_LISTENING_CHALLENGE_TYPES = [
+  CHALLENGE_TYPE_ASSIST,
   CHALLENGE_TYPE_LISTEN_ISOLATION,
   CHALLENGE_TYPE_LISTEN_MATCH,
 ];

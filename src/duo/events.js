@@ -744,7 +744,7 @@ const registerPracticeChallengesSoundsData = challenges => {
     }
 
     if (isArray(challenge.options)) {
-      // The choices for listening fill-in-the-blank challenges.
+      // The choices for listening fill-in-the-blank challenges, or "How do I say?" challenges.
       challengeSounds.push(
         challenge.options
           .map(it?.tts)
