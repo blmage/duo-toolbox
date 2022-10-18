@@ -379,7 +379,7 @@ const registerPreFetchedSessionLoadListener = (callback, listenerId = getUniqueE
     return request;
   });
 
-  return registerEventListener(event, callback);
+  return registerEventListener(event, callback, listenerId);
 };
 
 /**
