@@ -13,7 +13,17 @@ import {
   updateSharedGlobalVariable,
 } from '../utils/internal';
 
-import { compareWith, getUrlPath, isArray, isBlob, isEmptyObject, isObject, isString } from '../utils/functions';
+import {
+  compareWith,
+  getUrlPath,
+  identity,
+  isArray,
+  isBlob,
+  isEmptyObject,
+  isObject,
+  isString
+} from '../utils/functions';
+
 import { logError } from '../utils/logging';
 
 import {
@@ -224,6 +234,11 @@ const EVENT_TYPE_PRACTICE_CHALLENGES_LOADED = 'practice_challenges_loaded';
 /**
  * @type {string}
  */
+const EVENT_TYPE_PRE_FETCHED_SESSION_LOADED = 'pre_fetched_session_loaded';
+
+/**
+ * @type {string}
+ */
 const EVENT_TYPE_STORY_LOADED = 'story_loaded';
 
 /**
@@ -327,11 +342,80 @@ const registerXhrRequestEventListener = (event, callback, listenerId = getUnique
 export const onUserDataLoaded = registerXhrRequestEventListener(EVENT_TYPE_USER_DATA_LOADED, _);
 
 /**
+ * @param {Function} callback The function to be called with the session data, when a pre-fetched session is loaded.
+ * @param {string=} listenerId The listener ID.
+ * @returns {Function} A function usable to unregister the listener.
+ */
+const registerPreFetchedSessionLoadListener = (callback, listenerId = getUniqueEventListenerId()) => {
+  const event = EVENT_TYPE_PRE_FETCHED_SESSION_LOADED;
+
+  const patchIdbRequest = request => withEventListeners(event, listeners => {
+    request.addEventListener('success', () => {
+      try {
+        listeners.forEach(it(request.result));
+      } catch (error) {
+        logError(error, `Could not handle the IDBRequest result (event: ${event}): `);
+      }
+    });
+  });
+
+  overrideInstanceMethod('IDBIndex', 'get', originalGet => function (key) {
+    const request = originalGet.call(this, key);
+
+    if (isString(key) && key && (this.objectStore.name === 'prefetchedSessions')) {
+      patchIdbRequest(request);
+    }
+
+    return request;
+  });
+
+  overrideInstanceMethod('IDBObjectStore', 'get', originalGet => function (key) {
+    const request = originalGet.call(this, key);
+
+    if (this.name === 'prefetchedSessions') {
+      patchIdbRequest(request);
+    }
+
+    return request;
+  });
+
+  return registerEventListener(event, callback);
+};
+
+/**
  * @type {Function}
  * @param {Function} callback The function to be called with the response data when a practice session is loaded.
  * @returns {Function} A function usable to stop being notified of newly loaded practice sessions.
  */
-export const onPracticeSessionLoaded = registerXhrRequestEventListener(EVENT_TYPE_PRACTICE_SESSION_LOADED, _);
+export const onPracticeSessionLoaded = callback => {
+  const unregisterFreshSessionListener = registerXhrRequestEventListener(
+    EVENT_TYPE_PRACTICE_SESSION_LOADED,
+    callback
+  );
+
+  const unregisterPreFetchedSessionListener = registerDerivedEventListener(
+    EVENT_TYPE_PRACTICE_SESSION_LOADED,
+    EVENT_TYPE_PRE_FETCHED_SESSION_LOADED,
+    callback,
+    identity,
+    registerPreFetchedSessionLoadListener(_2, _3)
+  );
+
+  return () => {
+    unregisterFreshSessionListener();
+    unregisterPreFetchedSessionListener();
+  };
+};
+
+/**
+ * @type {Function}
+ * @param {Function} callback The function to be called with the session data when a pre-fetched session is loaded.
+ * @returns {Function} A function usable to stop being notified of newly loaded pre-fetched practice sessions.
+ */
+export const onPreFetchedSessionLoaded = registerPreFetchedSessionLoadListener(
+  EVENT_TYPE_PRE_FETCHED_SESSION_LOADED,
+  _
+);
 
 /**
  * @type {Function}
@@ -399,11 +483,8 @@ export const onUserCoursesLoaded = registerDerivedEventListener(
  * @param {Function} callback The function to be called with the challenges data when a practice session is loaded.
  * @returns {Function} A function usable to stop being notified of newly loaded challenges.
  */
-export const onPracticeChallengesLoaded = registerDerivedEventListener(
-  EVENT_TYPE_PRACTICE_CHALLENGES_LOADED,
-  EVENT_TYPE_PRACTICE_SESSION_LOADED,
-  _,
-  sessionData => {
+export const onPracticeChallengesLoaded = callback => {
+  const getSessionChallenges = sessionData => {
     let payload;
 
     if (isObject(sessionData)) {
@@ -419,9 +500,29 @@ export const onPracticeChallengesLoaded = registerDerivedEventListener(
     }
 
     return payload;
-  },
-  registerXhrRequestEventListener
-);
+  };
+
+  const unregisterFreshChallengesListener = registerDerivedEventListener(
+    EVENT_TYPE_PRACTICE_CHALLENGES_LOADED,
+    EVENT_TYPE_PRACTICE_SESSION_LOADED,
+    callback,
+    getSessionChallenges,
+    registerXhrRequestEventListener
+  );
+
+  const unregisterPreFetchedChallengesListener = registerDerivedEventListener(
+    EVENT_TYPE_PRACTICE_CHALLENGES_LOADED,
+    EVENT_TYPE_PRE_FETCHED_SESSION_LOADED,
+    callback,
+    getSessionChallenges,
+    registerPreFetchedSessionLoadListener(_2, _3)
+  );
+
+  return () => {
+    unregisterFreshChallengesListener();
+    unregisterPreFetchedChallengesListener();
+  };
+};
 
 /**
  * @typedef {Object} SoundData
