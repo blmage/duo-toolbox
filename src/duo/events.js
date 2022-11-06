@@ -5,10 +5,8 @@ import {
   getSharedGlobalVariable,
   getToolboxIframe,
   getUniqueKey,
-  onConstructorCall,
   overrideGlobalFunction,
   overrideInstanceMethod,
-  overrideStaticMethod,
   setSharedGlobalVariable,
   updateSharedGlobalVariable,
 } from '../utils/internal';
@@ -18,10 +16,9 @@ import {
   getUrlPath,
   identity,
   isArray,
-  isBlob,
   isEmptyObject,
   isObject,
-  isString
+  isString,
 } from '../utils/functions';
 
 import { logError } from '../utils/logging';
@@ -36,8 +33,6 @@ import {
 import { parseCourse } from './courses';
 
 import {
-  IS_AUDIO_PLAYBACK_SUPPORTED,
-  SOUND_PLAYBACK_STRATEGY_AUDIO,
   SOUND_PLAYBACK_STRATEGY_HOWLER,
   SOUND_SPEED_NORMAL,
   SOUND_SPEED_SLOW,
@@ -667,16 +662,6 @@ const KEY_SOUNDS_DATA_MAP = 'sound_type_map';
 const KEY_IS_HOWLER_USED = 'is_howler_used';
 
 /**
- * @type {string}
- */
-const KEY_AUDIO_BLOB_URL_MAP = 'audio_blob_url_map';
-
-/**
- * @type {string}
- */
-const KEY_AUDIO_BLOB_SOUND_URL_MAP = 'audio_blob_sound_url_map';
-
-/**
  * @returns {Object<string, SoundData>} Relevant data about all the detected sounds, by path on the corresponding CDNs.
  */
 const getSoundsDataMap = () => getSharedGlobalVariable(KEY_SOUNDS_DATA_MAP, DEFAULT_SOUNDS_DATA_MAP);
@@ -1094,17 +1079,6 @@ export const onSoundInitialized = callback => {
     return result;
   });
 
-  if (IS_AUDIO_PLAYBACK_SUPPORTED) {
-    onConstructorCall('Audio', sound => {
-      if (('' !== sound.src.trim()) && !getSharedGlobalVariable(KEY_IS_HOWLER_USED)) {
-        dispatchEvent(
-          EVENT_TYPE_SOUND_INITIALIZED,
-          getSoundEventPayload(sound, sound.src, SOUND_PLAYBACK_STRATEGY_AUDIO)
-        );
-      }
-    });
-  }
-
   registerSoundDetectionListeners();
 
   const unregisterDerived = registerEventListener(EVENT_TYPE_SOUND_INITIALIZED, callback);
@@ -1137,73 +1111,6 @@ const registerSoundPlaybackEventListener = (event, callback) => {
 
     return originalHowlPlay.call(this, id);
   });
-
-  if (IS_AUDIO_PLAYBACK_SUPPORTED) {
-    // Playback via Audio nodes uses blob URLs.
-    // Enforce stable URLs for the corresponding sound blobs, to be able to later identify them.
-
-    overrideStaticMethod('URL', 'createObjectUrl', originalCreateObjectUrl => function (object) {
-      const audioBlobUrlMap = getSharedGlobalVariable(KEY_AUDIO_BLOB_URL_MAP);
-
-      return isBlob(object) && audioBlobUrlMap?.has(object)
-        ? audioBlobUrlMap.get(object)
-        : originalCreateObjectUrl.call(this, object);
-    });
-
-    overrideGlobalFunction('fetch', originalFetch => function (resource, init) {
-      return originalFetch.call(this, resource, init)
-        .then(response => {
-          const originalResponse = response.clone();
-
-          return response.blob()
-            .then(blob => {
-              if (blob.type.indexOf('audio') === 0) {
-                const blobUrl = URL.createObjectURL(blob);
-
-                const audioBlobUrlMap = getSharedGlobalVariable(KEY_AUDIO_BLOB_URL_MAP) ?? new WeakMap();
-                const audioBlobSoundUrlMap = getSharedGlobalVariable(KEY_AUDIO_BLOB_SOUND_URL_MAP) ?? {};
-
-                audioBlobUrlMap.set(blob, blobUrl);
-                audioBlobSoundUrlMap[blobUrl] = response.url;
-
-                setSharedGlobalVariable(KEY_AUDIO_BLOB_URL_MAP, audioBlobUrlMap);
-                setSharedGlobalVariable(KEY_AUDIO_BLOB_SOUND_URL_MAP, audioBlobSoundUrlMap);
-
-                // By default, blob() returns a new Blob each time (with a different URL, then).
-                const patchResponse = response => {
-                  response.blob = async () => blob;
-
-                  response.clone = function () {
-                    return patchResponse(Response.prototype.clone.call(this));
-                  };
-
-                  return response;
-                };
-
-                patchResponse(originalResponse);
-              }
-
-              return originalResponse;
-            })
-            .catch(() => originalResponse)
-        })
-    });
-
-    overrideInstanceMethod('Audio', 'play', originalPlay => function () {
-      if (('' !== this.src.trim()) && !getSharedGlobalVariable(KEY_IS_HOWLER_USED)) {
-        const audioBlobSoundUrlMap = getSharedGlobalVariable(KEY_AUDIO_BLOB_SOUND_URL_MAP);
-
-        return processSoundPlayback(
-          this,
-          audioBlobSoundUrlMap?.[this.src] || this.src,
-          SOUND_PLAYBACK_STRATEGY_AUDIO,
-          () => originalPlay.call(this)
-        );
-      }
-
-      return originalPlay.call(this);
-    });
-  }
 
   registerSoundDetectionListeners();
 
