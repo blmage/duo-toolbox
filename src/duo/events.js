@@ -331,6 +331,50 @@ const registerXhrRequestEventListener = (event, callback, listenerId = getUnique
     }
   ), 2);
 
+  overrideGlobalFunction('fetch', originalFetch => function (resource, init) {
+    const url = (resource instanceof Request) ? resource.url : String(resource);
+    let event;
+    let urlMatches;
+    let loadCallback = null;
+
+    for (const [ requestEvent, urlRegExp ] of Object.entries(XHR_REQUEST_EVENT_URL_REGEXPS)) {
+      urlMatches = Array.from(url.matchAll(urlRegExp))[0];
+
+      if (urlMatches) {
+        event = requestEvent;
+        break;
+      }
+    }
+
+    if (event) {
+      loadCallback = withEventListeners(event, listeners => (
+        payload => {
+          try {
+            listeners.forEach(it(payload, urlMatches.groups || {}));
+          } catch (error) {
+            logError(error, `Could not handle the fetch result (event: ${event}): `);
+          }
+        }
+      ));
+    }
+
+    return originalFetch.call(this, resource, init)
+      .then(response => {
+        if (!loadCallback) {
+          return response;
+        }
+
+        const originalResponse = response.clone();
+
+        return response.json()
+          .then(payload => {
+            loadCallback(payload);
+            return originalResponse;
+          })
+          .catch(() => originalResponse)
+      })
+  });
+
   return registerEventListener(event, callback, listenerId);
 };
 
