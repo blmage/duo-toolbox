@@ -249,6 +249,11 @@ const EVENT_TYPE_FORUM_DISCUSSION_LOADED = 'forum_discussion_loaded';
 /**
  * @type {string}
  */
+const EVENT_TYPE_GUIDEBOOK_LOADED = 'guidebook_loaded';
+
+/**
+ * @type {string}
+ */
 const EVENT_TYPE_SOUND_INITIALIZED = 'sound_initialized';
 
 /**
@@ -277,6 +282,7 @@ const EVENT_TYPE_UI_LOADED = 'ui_loaded';
 const XHR_REQUEST_EVENT_URL_REGEXPS = {
   [EVENT_TYPE_ALPHABETS_LOADED]: /\/[\d]{4}-[\d]{2}-[\d]{2}\/alphabets\/courses\/(?<toLanguage>[^/]+)\/(?<fromLanguage>[^/?]+)\/?/g,
   [EVENT_TYPE_FORUM_DISCUSSION_LOADED]: /\/comments\/([\d]+)/g,
+  [EVENT_TYPE_GUIDEBOOK_LOADED]: /\/guidebook\/compiled\/(?<toLanguage>[^/]+)\/(?<fromLanguage>[^/]+)\/?/g,
   [EVENT_TYPE_PRACTICE_SESSION_LOADED]: /\/[\d]{4}-[\d]{2}-[\d]{2}\/sessions/g,
   [EVENT_TYPE_STORY_LOADED]: /\/api2\/stories/g,
   [EVENT_TYPE_USER_DATA_LOADED]: /\/[\d]{4}-[\d]{2}-[\d]{2}\/users\/[\d]+/g,
@@ -470,6 +476,13 @@ export const onAlphabetsLoaded = registerXhrRequestEventListener(EVENT_TYPE_ALPH
  * @returns {Function} A function usable to stop being notified of newly loaded forum discussions.
  */
 export const onForumDiscussionLoaded = registerXhrRequestEventListener(EVENT_TYPE_FORUM_DISCUSSION_LOADED, _);
+
+/**
+ * @type {Function}
+ * @param {Function} callback The function to be called with the response data when a guidebook is loaded.
+ * @returns {Function} A function usable to stop being notified of newly loaded guidebooks.
+ */
+export const onGuidebookLoaded = registerXhrRequestEventListener(EVENT_TYPE_GUIDEBOOK_LOADED, _);
 
 /**
  * @type {Function}
@@ -735,7 +748,7 @@ const registerSoundsData = newData => {
 /**
  * @type {number}
  */
-const SOUND_DETECTION_LISTENERS_VERSION = 2;
+const SOUND_DETECTION_LISTENERS_VERSION = 3;
 
 /**
  * @type {string}
@@ -921,6 +934,55 @@ const registerForumDiscussionSoundsData = discussion => {
 };
 
 /**
+ * @param {object} element A guidebook element.
+ * @param {string} language The language the user is learning.
+ * @returns {SoundData[]} The sounds data for the given guidebook element.
+ */
+const getGuidebookElementSoundsData = (element, language) => {
+  const elementSounds = [];
+  const sentenceTts = element.ttsURL;
+
+  if (isString(sentenceTts)) {
+    elementSounds.push(
+      getNormalSentenceSoundData(sentenceTts, language)
+    );
+  }
+
+  return elementSounds.concat(
+    [
+      element.tokenTTS?.tokenTTSCollection || [],
+      element.text?.tokenTTS?.tokenTTSCollection || [],
+      element.subtext?.tokenTTS?.tokenTTSCollection || [],
+    ].flat()
+      .filter(isObject)
+      .map(it?.ttsURL)
+      .filter(lift(isString(_) && (_ !== sentenceTts)))
+      .map(getNormalWordSoundData(_, language))
+  );
+};
+
+/**
+ * @param {object} guidebook A guidebook.
+ * @param {object} languages Language data from the guidebook request.
+ * @returns {void}
+ */
+export const registerGuidebookSoundsData = (guidebook, languages) => {
+  if (isArray(guidebook?.elements) && isString(languages?.toLanguage)) {
+    registerSoundsData(
+      guidebook.elements
+        .flatMap(({ element }) => (
+          isObject(element)
+          && [ element ]
+            .concat(element.phrases || [])
+            .concat(element.examples || [])
+        ))
+        .filter(isObject)
+        .flatMap(getGuidebookElementSoundsData(_, languages.toLanguage))
+    );
+  }
+};
+
+/**
  * Registers the event listeners required for detecting the sounds used for TTS sentences and words, if necessary.
  *
  * @returns {void}
@@ -946,6 +1008,7 @@ const registerSoundDetectionListeners = () => {
         onStoryLoaded(registerStorySoundsData(_)),
         onAlphabetsLoaded(registerAlphabetsSoundsData(_, _)),
         onForumDiscussionLoaded(registerForumDiscussionSoundsData(_)),
+        onGuidebookLoaded(registerGuidebookSoundsData(_, _)),
         onPracticeChallengesLoaded(registerPracticeChallengesSoundsData(_.challenges)),
       ]
     );

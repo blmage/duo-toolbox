@@ -29,6 +29,11 @@ export const CONTEXT_DICTIONARY = 'dictionary';
 /**
  * @type {string}
  */
+export const CONTEXT_GUIDEBOOK = 'guidebook';
+
+/**
+ * @type {string}
+ */
 export const CONTEXT_UNKNOWN = 'unknown';
 
 /**
@@ -45,6 +50,11 @@ const PAGE_URL_REGEXP_FORUM_COMMENT = /forum\.duolingo\.com\/comment\/(?<comment
  * @type {RegExp}
  */
 const PAGE_URL_REGEXP_CHARACTERS = /duolingo\.com\/characters\/?/;
+
+/**
+ * @type {RegExp}
+ */
+const PAGE_URL_REGEXP_GUIDEBOOK = /duolingo\.com\/guidebook\/(?<language>.+)\/(?<index>[\d]+)\/?/;
 
 /**
  * @type {string}
@@ -105,6 +115,18 @@ export const getCurrentContext = () => {
   if (url.match(PAGE_URL_REGEXP_CHARACTERS)) {
     return {
       type: CONTEXT_CHARACTERS,
+    };
+  }
+
+  // Guidebook
+
+  urlMatches = url.match(PAGE_URL_REGEXP_GUIDEBOOK);
+
+  if (isArray(urlMatches)) {
+    return {
+      type: CONTEXT_GUIDEBOOK,
+      languageName: urlMatches.language,
+      unitIndex: Number(urlMatches.index),
     };
   }
 
