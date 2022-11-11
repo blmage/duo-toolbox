@@ -47,11 +47,6 @@ const PAGE_URL_REGEXP_FORUM_COMMENT = /forum\.duolingo\.com\/comment\/(?<comment
 const PAGE_URL_REGEXP_CHARACTERS = /duolingo\.com\/characters\/?/;
 
 /**
- * @type {RegExp}
- */
-const PAGE_URL_REGEXP_DICTIONARY = /duolingo\.com\/dictionary\/(?<language>.+)\/(?<lexeme>.+)\/(?<lexeme_id>[\w]+)\/?/;
-
-/**
  * @type {string}
  */
 const SELECTOR_CHALLENGE_WRAPPER = '[data-test*="challenge"]';
@@ -110,19 +105,6 @@ export const getCurrentContext = () => {
   if (url.match(PAGE_URL_REGEXP_CHARACTERS)) {
     return {
       type: CONTEXT_CHARACTERS,
-    };
-  }
-
-  // Dictionary entries
-
-  urlMatches = url.match(PAGE_URL_REGEXP_DICTIONARY);
-
-  if (isArray(urlMatches)) {
-    return {
-      type: CONTEXT_DICTIONARY,
-      languageName: urlMatches.language,
-      lexeme: urlMatches.lexeme,
-      lexemeId: urlMatches.lexeme_id,
     };
   }
 

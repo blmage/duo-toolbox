@@ -249,11 +249,6 @@ const EVENT_TYPE_FORUM_DISCUSSION_LOADED = 'forum_discussion_loaded';
 /**
  * @type {string}
  */
-const EVENT_TYPE_DICTIONARY_LEXEME_LOADED = 'dictionary_lexeme_loaded';
-
-/**
- * @type {string}
- */
 const EVENT_TYPE_SOUND_INITIALIZED = 'sound_initialized';
 
 /**
@@ -281,7 +276,6 @@ const EVENT_TYPE_UI_LOADED = 'ui_loaded';
  */
 const XHR_REQUEST_EVENT_URL_REGEXPS = {
   [EVENT_TYPE_ALPHABETS_LOADED]: /\/[\d]{4}-[\d]{2}-[\d]{2}\/alphabets\/courses\/(?<toLanguage>[^/]+)\/(?<fromLanguage>[^/?]+)\/?/g,
-  [EVENT_TYPE_DICTIONARY_LEXEME_LOADED]: /\/api\/1\/dictionary_page/g,
   [EVENT_TYPE_FORUM_DISCUSSION_LOADED]: /\/comments\/([\d]+)/g,
   [EVENT_TYPE_PRACTICE_SESSION_LOADED]: /\/[\d]{4}-[\d]{2}-[\d]{2}\/sessions/g,
   [EVENT_TYPE_STORY_LOADED]: /\/api2\/stories/g,
@@ -476,13 +470,6 @@ export const onAlphabetsLoaded = registerXhrRequestEventListener(EVENT_TYPE_ALPH
  * @returns {Function} A function usable to stop being notified of newly loaded forum discussions.
  */
 export const onForumDiscussionLoaded = registerXhrRequestEventListener(EVENT_TYPE_FORUM_DISCUSSION_LOADED, _);
-
-/**
- * @type {Function}
- * @param {Function} callback The function to be called with the response data when a dictionary lexeme is loaded.
- * @returns {Function} A function usable to stop being notified of newly loaded dictionary lexemes.
- */
-export const onDictionaryLexemeLoaded = registerXhrRequestEventListener(EVENT_TYPE_DICTIONARY_LEXEME_LOADED, _);
 
 /**
  * @type {Function}
@@ -934,30 +921,6 @@ const registerForumDiscussionSoundsData = discussion => {
 };
 
 /**
- * @param {object} lexeme A dictionary lexeme.
- * @returns {void}
- */
-const registerDictionaryLexemeSoundsData = lexeme => {
-  const lexemeSounds = [];
-  const lexemeLanguage = lexeme.learning_language;
-
-  if (isString(lexeme.tts)) {
-    lexemeSounds.push(getNormalWordSoundData(lexeme.tts, lexemeLanguage));
-  }
-
-  if (isArray(lexeme.alternative_forms)) {
-    lexemeSounds.push(
-      lexeme.alternative_forms
-        .map(it?.tts)
-        .filter(isString)
-        .map(getNormalSentenceSoundData(_, lexemeLanguage))
-    );
-  }
-
-  registerSoundsData(lexemeSounds.flat());
-};
-
-/**
  * Registers the event listeners required for detecting the sounds used for TTS sentences and words, if necessary.
  *
  * @returns {void}
@@ -983,7 +946,6 @@ const registerSoundDetectionListeners = () => {
         onStoryLoaded(registerStorySoundsData(_)),
         onAlphabetsLoaded(registerAlphabetsSoundsData(_, _)),
         onForumDiscussionLoaded(registerForumDiscussionSoundsData(_)),
-        onDictionaryLexemeLoaded(registerDictionaryLexemeSoundsData(_)),
         onPracticeChallengesLoaded(registerPracticeChallengesSoundsData(_.challenges)),
       ]
     );
