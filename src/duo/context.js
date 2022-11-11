@@ -49,7 +49,12 @@ const PAGE_URL_REGEXP_FORUM_COMMENT = /forum\.duolingo\.com\/comment\/(?<comment
 /**
  * @type {RegExp}
  */
-const PAGE_URL_REGEXP_CHARACTERS = /duolingo\.com\/characters\/?/;
+const PAGE_URL_REGEXP_CHARACTER_LIST = /duolingo\.com\/characters\/?/;
+
+/**
+ * @type {RegExp}
+ */
+const PAGE_URL_REGEXP_CHARACTER_STUDY = /duolingo\.com\/alphabets\/?/;
 
 /**
  * @type {RegExp}
@@ -112,7 +117,7 @@ export const getCurrentContext = () => {
 
   // Characters
 
-  if (url.match(PAGE_URL_REGEXP_CHARACTERS)) {
+  if (url.match(PAGE_URL_REGEXP_CHARACTER_LIST) || url.match(PAGE_URL_REGEXP_CHARACTER_STUDY)) {
     return {
       type: CONTEXT_CHARACTERS,
     };

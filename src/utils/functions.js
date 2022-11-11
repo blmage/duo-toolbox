@@ -350,6 +350,13 @@ export const mergeMapsWith = (mergeValues, ...maps) => {
 };
 
 /**
+ * @type {Function}
+ * @param {string} value A string.
+ * @returns {string} The given string, with all RegExp characters escaped.
+ */
+export const escapeRegExp = it.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
  * @param {number} delay A delay, in milliseconds.
  * @returns {Promise<void>} A promise for when the delay is elapsed.
  */

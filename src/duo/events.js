@@ -13,6 +13,7 @@ import {
 
 import {
   compareWith,
+  escapeRegExp,
   getUrlPath,
   identity,
   isArray,
@@ -244,6 +245,11 @@ const EVENT_TYPE_ALPHABETS_LOADED = 'alphabets_loaded';
 /**
  * @type {string}
  */
+const EVENT_TYPE_ALPHABET_HINTS_LOADED = 'alphabet_hints_loaded';
+
+/**
+ * @type {string}
+ */
 const EVENT_TYPE_FORUM_DISCUSSION_LOADED = 'forum_discussion_loaded';
 
 /**
@@ -279,7 +285,7 @@ const EVENT_TYPE_UI_LOADED = 'ui_loaded';
 /**
  * @type {object<string, RegExp>}
  */
-const XHR_REQUEST_EVENT_URL_REGEXPS = {
+const BASE_HTTP_REQUEST_EVENT_URL_REGEXPS = {
   [EVENT_TYPE_ALPHABETS_LOADED]: /\/[\d]{4}-[\d]{2}-[\d]{2}\/alphabets\/courses\/(?<toLanguage>[^/]+)\/(?<fromLanguage>[^/?]+)\/?/g,
   [EVENT_TYPE_FORUM_DISCUSSION_LOADED]: /\/comments\/([\d]+)/g,
   [EVENT_TYPE_GUIDEBOOK_LOADED]: /\/guidebook\/compiled\/(?<toLanguage>[^/]+)\/(?<fromLanguage>[^/]+)\/?/g,
@@ -289,34 +295,98 @@ const XHR_REQUEST_EVENT_URL_REGEXPS = {
 };
 
 /**
+ * @type {string}
+ */
+const KEY_HTTP_REQUEST_URL_EVENT_MAP = 'http_request_url_event_map';
+
+/**
+ * @typedef {object} HttpUrlEvent
+ * @property {string} eventType An event type.
+ * @property {RegExp} urlRegExp A regular expression for the URLs that should trigger the event type when called.
+ * @property {object} requestData The base request data, common to all matching requests.
+ */
+
+/**
+ * @returns {Map<*, HttpUrlEvent>} A map from unique keys to URL events.
+ */
+const getHttpRequestUrlEventMap = () => {
+  let urlEventMap = getSharedGlobalVariable(KEY_HTTP_REQUEST_URL_EVENT_MAP);
+
+  if (!(urlEventMap instanceof Map)) {
+    urlEventMap = new Map();
+
+    Object.entries(BASE_HTTP_REQUEST_EVENT_URL_REGEXPS)
+      .forEach(([ eventType, urlRegExp ]) => {
+        urlEventMap.set(
+          urlRegExp,
+          { eventType, urlRegExp, requestData: {} }
+        );
+      });
+
+    setSharedGlobalVariable(KEY_HTTP_REQUEST_URL_EVENT_MAP, urlEventMap);
+  }
+
+  return urlEventMap;
+};
+
+/**
+ * @param {string} event An event type.
+ * @param {Array<string|RegExp>} urls URLs that should trigger the given event type when called.
+ * @param {object} requestData The base request data, common to all matching requests.
+ */
+const registerAdditionalUrlEvents = (event, urls, requestData = {}) => {
+  const urlEventMap = getHttpRequestUrlEventMap();
+
+  for (const url of urls) {
+    urlEventMap.set(url, {
+      eventType: event,
+      requestData,
+      urlRegExp: (url instanceof RegExp) ? url : new RegExp(escapeRegExp(String(url)), 'g'),
+    });
+  }
+};
+
+/**
+ * @param {string} url An URL.
+ * @returns {{ eventType: string, requestData: object }|null} The corresponding event data, if any.
+ */
+const getUrlEventData = url => {
+  let eventType;
+  let requestData;
+  const urlEventMap = getHttpRequestUrlEventMap();
+
+  for (const urlEvent of urlEventMap.values()) {
+    const urlMatches = Array.from(url.matchAll(urlEvent.urlRegExp))[0];
+
+    if (urlMatches) {
+      eventType = urlEvent.eventType;
+      requestData = { ...urlEvent.requestData, ...(urlMatches.groups || {}) };
+      break;
+    }
+  }
+
+  return eventType ? { eventType, requestData } : null;
+};
+
+/**
  * @param {string} event An event type based on XHR requests to some specific URLs.
  * @param {Function} callback The function to be called with the response data, when a matching request is made.
  * @param {string=} listenerId The listener ID.
  * @returns {Function} A function usable to unregister the listener.
  */
-const registerXhrRequestEventListener = (event, callback, listenerId = getUniqueEventListenerId()) => {
+const registerHttpRequestEventListener = (event, callback, listenerId = getUniqueEventListenerId()) => {
   overrideInstanceMethod('XMLHttpRequest', 'open', originalXhrOpen => (
     function (method, url, async, user, password) {
-      let event;
-      let urlMatches;
+      const urlEvent = getUrlEventData(url);
 
-      for (const [ requestEvent, urlRegExp ] of Object.entries(XHR_REQUEST_EVENT_URL_REGEXPS)) {
-        urlMatches = Array.from(url.matchAll(urlRegExp))[0];
-
-        if (urlMatches) {
-          event = requestEvent;
-          break;
-        }
-      }
-
-      if (event) {
-        withEventListeners(event, listeners => {
+      if (urlEvent) {
+        withEventListeners(urlEvent.eventType, listeners => {
           this.addEventListener('load', () => {
             try {
-              const data = isObject(this.response) ? this.response : JSON.parse(this.responseText);
-              listeners.forEach(it(data, urlMatches.groups || {}));
+              const responseData = isObject(this.response) ? this.response : JSON.parse(this.responseText);
+              listeners.forEach(it(responseData, urlEvent.requestData));
             } catch (error) {
-              logError(error, `Could not handle the XHR result (event: ${event}): `);
+              logError(error, `Could not handle the XHR result (event: "${urlEvent.eventType}"): `);
             }
           });
         });
@@ -324,30 +394,20 @@ const registerXhrRequestEventListener = (event, callback, listenerId = getUnique
 
       return originalXhrOpen.call(this, method, url, async, user, password);
     }
-  ), 2);
+  ), 3);
 
   overrideGlobalFunction('fetch', originalFetch => function (resource, init) {
     const url = (resource instanceof Request) ? resource.url : String(resource);
-    let event;
-    let urlMatches;
     let loadCallback = null;
+    const urlEvent = getUrlEventData(url);
 
-    for (const [ requestEvent, urlRegExp ] of Object.entries(XHR_REQUEST_EVENT_URL_REGEXPS)) {
-      urlMatches = Array.from(url.matchAll(urlRegExp))[0];
-
-      if (urlMatches) {
-        event = requestEvent;
-        break;
-      }
-    }
-
-    if (event) {
-      loadCallback = withEventListeners(event, listeners => (
-        payload => {
+    if (urlEvent) {
+      loadCallback = withEventListeners(urlEvent.eventType, listeners => (
+        responseData => {
           try {
-            listeners.forEach(it(payload, urlMatches.groups || {}));
+            listeners.forEach(it(responseData, urlEvent.requestData));
           } catch (error) {
-            logError(error, `Could not handle the fetch result (event: ${event}): `);
+            logError(error, `Could not handle the fetch result (event: "${urlEvent.eventType}"): `);
           }
         }
       ));
@@ -368,7 +428,7 @@ const registerXhrRequestEventListener = (event, callback, listenerId = getUnique
           })
           .catch(() => originalResponse)
       })
-  });
+  }, 2);
 
   return registerEventListener(event, callback, listenerId);
 };
@@ -378,7 +438,7 @@ const registerXhrRequestEventListener = (event, callback, listenerId = getUnique
  * @param {Function} callback The function to be called with the response data when user data is loaded.
  * @returns {Function} A function usable to stop being notified of newly loaded user data.
  */
-export const onUserDataLoaded = registerXhrRequestEventListener(EVENT_TYPE_USER_DATA_LOADED, _);
+export const onUserDataLoaded = registerHttpRequestEventListener(EVENT_TYPE_USER_DATA_LOADED, _);
 
 /**
  * @param {Function} callback The function to be called with the session data, when a pre-fetched session is loaded.
@@ -427,7 +487,7 @@ const registerPreFetchedSessionLoadListener = (callback, listenerId = getUniqueE
  * @returns {Function} A function usable to stop being notified of newly loaded practice sessions.
  */
 export const onPracticeSessionLoaded = callback => {
-  const unregisterFreshSessionListener = registerXhrRequestEventListener(
+  const unregisterFreshSessionListener = registerHttpRequestEventListener(
     EVENT_TYPE_PRACTICE_SESSION_LOADED,
     callback
   );
@@ -461,28 +521,35 @@ export const onPreFetchedSessionLoaded = registerPreFetchedSessionLoadListener(
  * @param {Function} callback The function to be called with the response data when a story is loaded.
  * @returns {Function} A function usable to stop being notified of newly loaded stories.
  */
-export const onStoryLoaded = registerXhrRequestEventListener(EVENT_TYPE_STORY_LOADED, _);
+export const onStoryLoaded = registerHttpRequestEventListener(EVENT_TYPE_STORY_LOADED, _);
 
 /**
  * @type {Function}
  * @param {Function} callback The function to be called with the response and request data when alphabets are loaded.
  * @returns {Function} A function usable to stop being notified of newly loaded alphabets.
  */
-export const onAlphabetsLoaded = registerXhrRequestEventListener(EVENT_TYPE_ALPHABETS_LOADED, _, _);
+export const onAlphabetsLoaded = registerHttpRequestEventListener(EVENT_TYPE_ALPHABETS_LOADED, _, _);
+
+/**
+ * @type {Function}
+ * @param {Function} callback The function to be called with the response data when alphabet hints are loaded.
+ * @returns {Function} A function usable to stop being notified of newly loaded alphabet hints.
+ */
+export const onAlphabetHintsLoaded = registerHttpRequestEventListener(EVENT_TYPE_ALPHABET_HINTS_LOADED, _);
 
 /**
  * @type {Function}
  * @param {Function} callback The function to be called with the response data when a forum discussion is loaded.
  * @returns {Function} A function usable to stop being notified of newly loaded forum discussions.
  */
-export const onForumDiscussionLoaded = registerXhrRequestEventListener(EVENT_TYPE_FORUM_DISCUSSION_LOADED, _);
+export const onForumDiscussionLoaded = registerHttpRequestEventListener(EVENT_TYPE_FORUM_DISCUSSION_LOADED, _);
 
 /**
  * @type {Function}
  * @param {Function} callback The function to be called with the response data when a guidebook is loaded.
  * @returns {Function} A function usable to stop being notified of newly loaded guidebooks.
  */
-export const onGuidebookLoaded = registerXhrRequestEventListener(EVENT_TYPE_GUIDEBOOK_LOADED, _);
+export const onGuidebookLoaded = registerHttpRequestEventListener(EVENT_TYPE_GUIDEBOOK_LOADED, _);
 
 /**
  * @type {Function}
@@ -514,7 +581,7 @@ export const onUserCoursesLoaded = registerDerivedEventListener(
 
     return payload;
   },
-  registerXhrRequestEventListener
+  registerHttpRequestEventListener
 );
 
 /**
@@ -546,7 +613,7 @@ export const onPracticeChallengesLoaded = callback => {
     EVENT_TYPE_PRACTICE_SESSION_LOADED,
     callback,
     getSessionChallenges,
-    registerXhrRequestEventListener
+    registerHttpRequestEventListener
   );
 
   const unregisterPreFetchedChallengesListener = registerDerivedEventListener(
@@ -911,17 +978,66 @@ const registerStorySoundsData = story => {
  * @returns {void}
  */
 const registerAlphabetsSoundsData = (payload, languages) => {
-  isArray(payload?.alphabets)
-  && isString(languages?.toLanguage)
-  && registerSoundsData(
-    payload.alphabets
-      .flatMap(it?.groups)
-      .flatMap(it?.characters)
-      .flat()
-      .map(it?.ttsUrl)
-      .filter(isString)
-      .map(getNormalMorphemeSoundData(_, languages.toLanguage))
-  )
+  if (isArray(payload?.alphabets) && isString(languages?.toLanguage)) {
+    registerSoundsData(
+      payload.alphabets
+        .flatMap(it?.groups)
+        .flatMap(it?.characters)
+        .flat()
+        .map(it?.ttsUrl)
+        .filter(isString)
+        .map(getNormalMorphemeSoundData(_, languages.toLanguage))
+    );
+
+    const hintsUrls = [];
+
+    for (const alphabet of payload.alphabets) {
+      if (isString(alphabet.explanationUrl)) {
+        hintsUrls.push(alphabet.explanationUrl);
+      }
+
+      if (isArray(alphabet.explanationListing?.groups)) {
+        hintsUrls.push(
+          ...alphabet.explanationListing.groups
+            .flatMap(it?.tips)
+            .map(it?.url)
+            .filter(isString)
+        );
+      }
+    }
+
+    if (hintsUrls.length > 0) {
+      registerAdditionalUrlEvents(EVENT_TYPE_ALPHABET_HINTS_LOADED, hintsUrls, languages);
+    }
+  }
+};
+
+/**
+ * @param {object} payload The response payload.
+ * @param {object} languages Language data from the original alphabets request.
+ * @returns {void}
+ */
+const registerAlphabetHintsSoundsData = (payload, languages) => {
+  if (isArray(payload?.elements) && isString(languages?.toLanguage)) {
+    const tokenSounds = payload.elements
+      .map(it?.element)
+      .flatMap(it?.tokenTTS?.tokenTTSCollection);
+
+    tokenSounds.push(
+      ...payload.elements
+        .map(it?.element)
+        .flatMap(it?.cells)
+        .flat()
+        .flatMap(it?.tokenTTS?.tokenTTSCollection)
+    );
+
+    registerSoundsData(
+      tokenSounds
+        .map(it?.ttsURL)
+        .filter(isString)
+        .map(getNormalMorphemeSoundData(_, languages.toLanguage))
+    );
+  }
 };
 
 /**
@@ -1007,6 +1123,7 @@ const registerSoundDetectionListeners = () => {
       [
         onStoryLoaded(registerStorySoundsData(_)),
         onAlphabetsLoaded(registerAlphabetsSoundsData(_, _)),
+        onAlphabetHintsLoaded(registerAlphabetHintsSoundsData(_, _)),
         onForumDiscussionLoaded(registerForumDiscussionSoundsData(_)),
         onGuidebookLoaded(registerGuidebookSoundsData(_, _)),
         onPracticeChallengesLoaded(registerPracticeChallengesSoundsData(_.challenges)),
