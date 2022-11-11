@@ -138,20 +138,28 @@ export const sendMessageToBackgroundScript = async data => (
  * @param {*=} value The event payload.
  * @returns {void}
  */
-export const sendBackgroundEventNotificationToPageScript = (event, value) => {
-  chrome.runtime.sendMessage({
-    type: MESSAGE_TYPE_BACKGROUND_EVENT_NOTIFICATION,
-    event,
-    value,
-  });
+export const sendBackgroundEventNotificationToPageScript = async (event, value) => {
+  try {
+    await chrome.runtime.sendMessage({
+      type: MESSAGE_TYPE_BACKGROUND_EVENT_NOTIFICATION,
+      event,
+      value,
+    });
+  } catch (error) {
+    // Most certainly nobody is listening, but we don't care whether we are heard or not here.
+  }
 
-  chrome.tabs.query(
+  await chrome.tabs.query(
     { url: DUOLINGO_URL_PATTERN },
     it.forEach(
       chrome.tabs.sendMessage(_.id, {
         type: MESSAGE_TYPE_BACKGROUND_EVENT_NOTIFICATION,
         event,
         value,
+      }).catch(() => {
+        if (chrome.runtime.lastError) {
+          // Same thing here.
+        }
       })
     )
   );

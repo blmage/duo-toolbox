@@ -40,8 +40,8 @@ export const getPageActionRule = () => ({
 const togglePopupOnTab = tab => {
   if (tab?.id) {
     (tab.url || '').match(/^https:\/\/.*duolingo\.com\//)
-      ? chrome.pageAction.show(tab.id, discardLastRuntimeError)
-      : chrome.pageAction.hide(tab.id, discardLastRuntimeError);
+      ? (chrome.pageAction?.show || chrome.action.enable)(tab.id, discardLastRuntimeError)
+      : (chrome.pageAction?.hide || chrome.action.disable)(tab.id, discardLastRuntimeError);
 
     chrome.runtime.lastError && setTimeout(() => togglePopupOnTab(tab), 50);
   }
