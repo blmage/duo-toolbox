@@ -9,6 +9,11 @@ export const CONTEXT_CHALLENGE = 'challenge';
 /**
  * @type {string}
  */
+export const CONTEXT_CHALLENGE_REVIEW = 'challenge_review';
+
+/**
+ * @type {string}
+ */
 export const CONTEXT_STORY = 'story';
 
 /**
@@ -60,6 +65,11 @@ const PAGE_URL_REGEXP_CHARACTER_STUDY = /duolingo\.com\/alphabets\/?/;
  * @type {RegExp}
  */
 const PAGE_URL_REGEXP_GUIDEBOOK = /duolingo\.com\/guidebook\/(?<language>.+)\/(?<index>[\d]+)\/?/;
+
+/**
+ * @type {RegExp}
+ */
+const PAGE_URL_REGEXP_CHALLENGE = /duolingo\.com\/(practice|lesson)\/?/;
 
 /**
  * @type {string}
@@ -165,6 +175,12 @@ export const getCurrentContext = () => {
       challengeType,
       result,
       isCompleted: (RESULT_NONE !== result),
+    };
+  }
+
+  if (url.match(PAGE_URL_REGEXP_CHALLENGE)) {
+    return {
+      type: CONTEXT_CHALLENGE_REVIEW,
     };
   }
 
