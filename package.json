@@ -3,7 +3,7 @@
   "description": "A set of general and specialized tools for building browser extensions and user scripts targeting Duolingo.",
   "license": "MIT",
   "author": "blmage",
-  "version": "3.6.0",
+  "version": "3.7.0",
   "exports": {
     "./duo/challenges": "./dist/duo/challenges.js",
     "./duo/context": "./dist/duo/context.js",
