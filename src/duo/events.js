@@ -594,9 +594,15 @@ export const onPracticeChallengesLoaded = callback => {
     let payload;
 
     if (isObject(sessionData)) {
+      if (isObject(sessionData.session)) {
+        sessionData = sessionData.session;
+      }
+
       const challenges = [
         sessionData.challenges,
         sessionData.adaptiveChallenges,
+        sessionData.easierAdaptiveChallenges,
+        sessionData.mistakesReplacementChallenges,
         sessionData.adaptiveInterleavedChallenges?.challenges,
       ].filter(isArray).flat();
 
