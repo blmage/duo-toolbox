@@ -821,7 +821,7 @@ const registerSoundsData = newData => {
 /**
  * @type {number}
  */
-const SOUND_DETECTION_LISTENERS_VERSION = 3;
+const SOUND_DETECTION_LISTENERS_VERSION = 4;
 
 /**
  * @type {string}
@@ -901,8 +901,18 @@ const registerPracticeChallengesSoundsData = challenges => {
       );
     }
 
+    if (isArray(challenge.displayTokens)) {
+      // The words that make up the statement for (at least) definitions.
+      challengeSounds.push(
+        challenge.displayTokens
+          .map(it?.hintToken?.tts)
+          .filter(isString)
+          .map(getNormalWordSoundData(_, sourceLanguage))
+      );
+    }
+
     if (isArray(challenge.questionTokens)) {
-      // The words that make up the statement for the listening comprehension challenges.
+      // The words that make up the statement for (at least) listening comprehension challenges.
       challengeSounds.push(
         challenge.questionTokens
           .map(it?.tts)
@@ -956,7 +966,25 @@ const registerPracticeChallengesSoundsData = challenges => {
       );
     }
 
-    // The "dialogue" data seems to be redundant with the "metadata.speakers" data, while less complete.
+    if (isArray(challenge.dialogue)) {
+      // The sentences (and corresponding words) that make up a dialogue, voiced  by different speakers.
+      challengeSounds.push(
+        challenge.dialogue
+          .map(it?.tts)
+          .filter(isString)
+          .map(getNormalSentenceSoundData(_, targetLanguage))
+      );
+
+      challengeSounds.push(
+        challenge.dialogue
+          .map(it?.hintTokens)
+          .filter(isArray)
+          .flat()
+          .map(it?.tts)
+          .filter(isString)
+          .map(getNormalWordSoundData(_, targetLanguage))
+      );
+    }
   }
 
   registerSoundsData(challengeSounds.flat());
