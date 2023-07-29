@@ -1,4 +1,4 @@
-import { _, it } from 'one-liner.macro';
+import { _ } from 'one-liner.macro';
 import { getUniqueKey } from '../utils/internal';
 import { isArray, isObject, runPromiseForEffects } from '../utils/functions';
 import { DUOLINGO_URL_PATTERN } from '../duo/url';
@@ -151,17 +151,21 @@ export const sendBackgroundEventNotificationToPageScript = async (event, value) 
 
   await chrome.tabs.query(
     { url: DUOLINGO_URL_PATTERN },
-    it.forEach(
-      chrome.tabs.sendMessage(_.id, {
-        type: MESSAGE_TYPE_BACKGROUND_EVENT_NOTIFICATION,
-        event,
-        value,
-      }).catch(() => {
-        if (chrome.runtime.lastError) {
-          // Same thing here.
+    async tabs => {
+      for (const tab of tabs) {
+        try {
+          await chrome.tabs.sendMessage(tab.id, {
+            type: MESSAGE_TYPE_BACKGROUND_EVENT_NOTIFICATION,
+            event,
+            value,
+          });
+        } catch (error) {
+          if (chrome.runtime.lastError) {
+            // Same thing here.
+          }
         }
-      })
-    )
+      }
+    }
   );
 }
 
