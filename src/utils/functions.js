@@ -273,6 +273,41 @@ export const cartesianProduct = xss => (0 === xss.length)
   ? []
   : xss.reduce((yss, xs) => yss.flatMap(ys => xs.map(x => [ ...ys, x ])), [ [] ]);
 
+/**
+ * @param {Array} values A list of values.
+ * @param {Function} choose
+ * A function that will be applied to values whose calculated value is strictly equal.
+ * Should return:
+ * - -1 to keep the first value,
+ * - +1 to keep the second value.
+ * @param {Function} map
+ * A function that will be applied to the values before comparing them for strict equality.
+ * @returns {Array} The given list of values, in which equivalent values have been deduplicated.
+ */
+export function dedupeBy(values, choose, map = identity) {
+  if (values.length <= 1) {
+    return values.slice();
+  }
+
+  const deduped = new Map();
+
+  for (const value of values) {
+    const key = map(value);
+
+    if (deduped.has(key)) {
+      const choice = choose(deduped.get(key), value, key);
+
+      if (choice === 1) {
+        deduped.delete(key);
+        deduped.set(key, value);
+      }
+    } else {
+      deduped.set(key, value);
+    }
+  }
+
+  return Array.from(deduped.values());
+}
 
 /**
  * @param {Array} values A list of values.
