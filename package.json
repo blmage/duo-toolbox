@@ -22,7 +22,9 @@
     "build": "babel src -d dist",
     "prepare": "npm run build"
   },
-  "dependencies": {},
+  "dependencies": {
+    "cxproduct": "^2.1.4"
+  },
   "devDependencies": {
     "@babel/cli": "^7.14.8",
     "@babel/core": "^7.14.8",

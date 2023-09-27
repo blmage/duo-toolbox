@@ -553,6 +553,13 @@ cross-spawn@^7.0.2:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
+cxproduct@^2.1.4:
+  version "2.1.4"
+  resolved "https://registry.yarnpkg.com/cxproduct/-/cxproduct-2.1.4.tgz#f8d869e0846223afac32165174e52526edfd1d68"
+  integrity sha512-NTIgzRtPpBWpnHrcJxCLe2/085mazE0CWo1xhICj/loX+4/DWaIAqvSjb7XwJpFtDJapQq7lzeL8QsCKvhNiow==
+  dependencies:
+    intersector "^2.1.1"
+
 debug@^4.1.0, debug@^4.1.1, debug@^4.3.2, debug@^4.3.3:
   version "4.3.4"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
@@ -870,6 +877,13 @@ inherits@2:
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
 
+intersector@^2.1.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/intersector/-/intersector-2.5.1.tgz#58969792bdebe00e7dd6e80c3c2f09a8e7d0f639"
+  integrity sha512-0AmtZWdLA1zSFMnOb/7HC3qbwCx0Uzn+u+jW+k3wbfygro2H/6O3Mh3ncP1O/gs5GHklwzwTQP68QkrHU6fHFQ==
+  dependencies:
+    mkdirp "^0.5.1"
+
 is-arrayish@^0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/is-arrayish/-/is-arrayish-0.2.1.tgz#77c99840527aa8ecb1a8ba697b80645a7a926a9d"
@@ -992,6 +1006,18 @@ minimatch@^3.0.4, minimatch@^3.1.1, minimatch@^3.1.2:
   integrity sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==
   dependencies:
     brace-expansion "^1.1.7"
+
+minimist@^1.2.6:
+  version "1.2.8"
+  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.8.tgz#c1a464e7693302e082a075cee0c057741ac4772c"
+  integrity sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==
+
+mkdirp@^0.5.1:
+  version "0.5.6"
+  resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-0.5.6.tgz#7def03d2432dcae4ba1d611445c48396062255f6"
+  integrity sha512-FP+p8RB8OWpF3YZBCrP5gtADmtXApB5AMLn+vdyA+PyxCjrCs00mjyUozssO33cwDeT3wNGdLxJ5M//YqtHAJw==
+  dependencies:
+    minimist "^1.2.6"
 
 ms@2.1.2:
   version "2.1.2"

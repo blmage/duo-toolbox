@@ -1,4 +1,5 @@
 import { _, _1, it } from 'one-liner.macro';
+import { CXProduct } from 'cxproduct';
 
 /**
  * A function that does nothing.
@@ -269,9 +270,13 @@ export const partition = (values, predicate) => {
  * @param {Array[]} xss A list of arrays.
  * @returns {Array[]} The cartesian product of the given arrays.
  */
-export const cartesianProduct = xss => (0 === xss.length)
-  ? []
-  : xss.reduce((yss, xs) => yss.flatMap(ys => xs.map(x => [ ...ys, x ])), [ [] ]);
+export const cartesianProduct = xss => {
+  const result = [];  
+  const product = CXProduct(xss);
+  product.forEach(result.push(_));
+
+  return result;
+};
 
 /**
  * @param {Array} values A list of values.
