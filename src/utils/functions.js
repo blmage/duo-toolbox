@@ -391,6 +391,19 @@ export const mergeMapsWith = (mergeValues, ...maps) => {
 /**
  * @type {Function}
  * @param {string} value A string.
+ * @param {?string} locale An optional locale, if locale-aware capitalization is required.
+ * @returns {string} The given string, with the first letter capitalized.
+ */
+export const capitalize = (value, locale = null) =>
+  (
+    (null === locale)
+      ? value.charAt(0).toUpperCase()
+      : value.charAt(0).toLocaleUpperCase(locale)
+  ) + value.slice(1);
+
+/**
+ * @type {Function}
+ * @param {string} value A string.
  * @returns {string} The given string, with all RegExp characters escaped.
  */
 export const escapeRegExp = it.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
