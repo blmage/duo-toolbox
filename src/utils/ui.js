@@ -197,3 +197,28 @@ export const getFixedElementPositioningParent = element => {
 
   return null;
 };
+
+/**
+ * Triggers the download of a file with the given content.
+ * @param {string} content The content to download.
+ * @param {string} mimeType The MIME type of the content.
+ * @param {?string} fileName The name of the file to download.
+ * @returns {void}
+ */
+export const triggerContentDownload = (content, mimeType = 'text/plain', fileName = null) => {
+  const blob = new Blob([ content ], { type: mimeType });
+  const downloadLink = document.createElement('a');
+  downloadLink.href = URL.createObjectURL(blob);
+
+  if (null !== fileName) {
+    downloadLink.download = fileName;
+  }
+
+  if (document?.body) {
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  } else {
+    downloadLink.click();
+  }
+};
