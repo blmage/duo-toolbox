@@ -15,7 +15,7 @@ to coexist nicely with the use of mutexes.
 ### Used by
 
 <h4>
-    <img align="center" width="24" height="24" src="https://raw.githubusercontent.com/blmage/duolingo-solution-viewer/master/dist/icons/icon_48.png" />
+    <img align="center" width="24" height="24" src="https://raw.githubusercontent.com/blmage/duolingo-solution-viewer/master/dist/common/icons/icon_48.png" />
     Duolingo Solution Viewer
 </h4>
 
@@ -44,7 +44,7 @@ to coexist nicely with the use of mutexes.
 ---
 
 <h4>
-    <img align="center" width="24" height="24" src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/master/dist/icons/icon_48.png" />
+    <img align="center" width="24" height="24" src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/master/dist/common/icons/icon_48.png" />
     Duolingo TTS Controls
 </h4>
 
@@ -58,7 +58,7 @@ to coexist nicely with the use of mutexes.
 ---
 
 <h4>
-    <img align="center" width="24" height="24" src="https://raw.githubusercontent.com/blmage/duolingo-word-bank-dnd/master/dist/icons/icon_48.png" />
+    <img align="center" width="24" height="24" src="https://raw.githubusercontent.com/blmage/duolingo-word-bank-dnd/master/dist/common/icons/icon_48.png" />
     Duolingo Word Bank Dnd
 </h4>
 
