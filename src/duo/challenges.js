@@ -300,21 +300,18 @@ export const getChallengeTargetLanguage = challenge => (
 
 /**
  * The result of challenges that have not been completed yet.
- *
  * @type {string}
  */
 export const RESULT_NONE = 'none';
 
 /**
  * The result of challenges to which a correct answer has been given.
- *
  * @type {string}
  */
 export const RESULT_CORRECT = 'correct';
 
 /**
  * The result of challenges to which an incorrect answer has been given.
- *
  * @type {string}
  */
 export const RESULT_INCORRECT = 'incorrect';

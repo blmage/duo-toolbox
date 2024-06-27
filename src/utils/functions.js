@@ -3,7 +3,6 @@ import { CXProduct } from 'cxproduct';
 
 /**
  * A function that does nothing.
- *
  * @returns {void}
  */
 export const noop = () => {
@@ -232,7 +231,7 @@ export const sum = sumOf(_, identity);
 /**
  * @param {Array} values A list of values.
  * @param {Function} getter A getter for the calculated values on which to group the values in the list.
- * @returns {Object<string, Array>} An object from calculated values to the corresponding subset of original values.
+ * @returns {{[key: string]: Array}} An object from calculated values to the corresponding subset of original values.
  */
 export const groupBy = (values, getter) => {
   const result = {};

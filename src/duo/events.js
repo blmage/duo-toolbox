@@ -57,13 +57,13 @@ const getUniqueEventListenerId = () => `__listener::${bumpGlobalCounter('last_ev
 /**
  * @type {Function}
  * @param {string} event An event type.
- * @returns {Object<string, Function[]>} The registered listeners for the given event type.
+ * @returns {{[key: string]: Function[]}} The registered listeners for the given event type.
  */
 const getEventListeners = getSharedGlobalVariable(KEY_EVENT_LISTENERS, {})?.[_] || {};
 
 /**
  * @param {string} event An event type.
- * @param {Object<string, Function[]>} listeners The new set of listeners for the given event type.
+ * @param {{[key: string]: Function[]}} listeners The new set of listeners for the given event type.
  * @returns {void}
  */
 const setEventListeners = (event, listeners) => {
@@ -102,7 +102,6 @@ const withEventListeners = (event, callback) => {
  * Registers a new listener for some event type.
  *
  * If a listener with the same ID already exists for the given event type, it will be replaced.
- *
  * @param {string} event An event type.
  * @param {Function} callback The function to be called with the event payload when a matching event is dispatched.
  * @param {string=} listenerId The listener ID.
@@ -119,7 +118,6 @@ const registerEventListener = (event, callback, listenerId = getUniqueEventListe
  * Registers a new listener for some event type, derived from another base event type.
  *
  * If a listener with the same ID already exists for the given derived event type, it will be replaced.
- *
  * @param {string} derivedEvent The derived event type.
  * @param {string} baseEvent The base event type.
  * @param {Function} derivedCallback
@@ -283,7 +281,7 @@ const EVENT_TYPE_SOUND_PLAYBACK_CANCELLED = 'sound_playback_cancelled';
 const EVENT_TYPE_UI_LOADED = 'ui_loaded';
 
 /**
- * @type {object<string, RegExp>}
+ * @type {{[key: string]: RegExp}}
  */
 const BASE_HTTP_REQUEST_EVENT_URL_REGEXPS = {
   [EVENT_TYPE_ALPHABETS_LOADED]: /\/[\d]{4}-[\d]{2}-[\d]{2}\/alphabets\/courses\/(?<toLanguage>[^/]+)\/(?<fromLanguage>[^/?]+)\/?/g,
@@ -637,7 +635,7 @@ export const onPracticeChallengesLoaded = callback => {
 };
 
 /**
- * @typedef {Object} SoundData
+ * @typedef {object} SoundData
  * @property {string} url The URL of the sound (that may be of any shape).
  * @property {string} type The type of the sound.
  * @property {string} speed The speed of the sound.
@@ -704,7 +702,7 @@ const getNormalMorphemeSoundData = (url, language) => ({
 });
 
 /**
- * @type {Object<string, SoundData>}
+ * @type {{[key: string]: SoundData}}
  */
 const DEFAULT_SOUNDS_DATA_MAP = Object.fromEntries(
   [
@@ -735,7 +733,7 @@ const KEY_SOUNDS_DATA_MAP = 'sound_type_map';
 const KEY_IS_HOWLER_USED = 'is_howler_used';
 
 /**
- * @returns {Object<string, SoundData>} Relevant data about all the detected sounds, by path on the corresponding CDNs.
+ * @returns {{[key: string]: SoundData}} Relevant data about all the detected sounds, by path on the corresponding CDNs.
  */
 const getSoundsDataMap = () => getSharedGlobalVariable(KEY_SOUNDS_DATA_MAP, DEFAULT_SOUNDS_DATA_MAP);
 
@@ -834,7 +832,7 @@ const KEY_SOUND_DETECTION_LISTENERS_VERSION = 'sound_detection_listeners_version
 const KEY_SOUND_DETECTION_UNREGISTRATION_CALLBACKS = 'sound_detection_unregistration_callbacks';
 
 /**
- * @param {Object} sound The configuration of a speaker sound.
+ * @param {object} sound The configuration of a speaker sound.
  * @param {string} type The type of the sound.
  * @param {string} language The language of the sound.
  * @returns {SoundData} Relevant data about the given sound.
@@ -1134,7 +1132,6 @@ export const registerGuidebookSoundsData = (guidebook, languages) => {
 
 /**
  * Registers the event listeners required for detecting the sounds used for TTS sentences and words, if necessary.
- *
  * @returns {void}
  */
 const registerSoundDetectionListeners = () => {
@@ -1169,7 +1166,6 @@ const registerSoundDetectionListeners = () => {
 /**
  * Unregisters the event listeners dedicated to detecting the sounds used for TTS sentences and words,
  * if all the listeners for sound playback events have also been unregistered.
- *
  * @returns {void}
  */
 const unregisterUnusedSoundDetectionListeners = () => {
@@ -1192,7 +1188,7 @@ const unregisterUnusedSoundDetectionListeners = () => {
  * @param {*} sound A sound object, whose type depends on the playback strategy.
  * @param {string} url The sound URL.
  * @param {string} playbackStrategy The strategy used for playing the sound.
- * @returns {Object} The payload usable for events related to the given sound.
+ * @returns {object} The payload usable for events related to the given sound.
  */
 const getSoundEventPayload = (sound, url, playbackStrategy) => {
   const soundData = getSoundData(getUrlPath(url));

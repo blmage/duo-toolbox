@@ -35,7 +35,6 @@ export const MESSAGE_TYPE_BACKGROUND_EVENT_NOTIFICATION = getUniqueKey('backgrou
 
 /**
  * Sends an action request from a UI script to the content scripts.
- *
  * @param {string} action The action type.
  * @param {*=} value The action payload.
  * @returns {Promise} A promise for the result of the action.
@@ -72,7 +71,6 @@ export const sendActionRequestToContentScript = async (action, value) => (
 
 /**
  * Sends an event notification from a UI script to the content scripts.
- *
  * @param {string} event The event type.
  * @param {*=} value The event payload.
  * @returns {void}
@@ -87,7 +85,6 @@ export const sendEventNotificationToContentScript = (event, value) => {
 
 /**
  * Sends an action request from a content / options / popup script to the background scripts.
- *
  * @type {Function}
  * @param {string} action The action key.
  * @param {*=} value The action payload.
@@ -109,7 +106,6 @@ export const sendActionRequestToBackgroundScript = async (action, value) => (
 
 /**
  * Sends a message from a content / options / popup script to the background scripts.
- *
  * @type {Function}
  * @param {object} data The message payload.
  * @returns {Promise} A promise for the result of processing the message.
@@ -132,7 +128,6 @@ export const sendMessageToBackgroundScript = async data => (
 
 /**
  * Sends an event notification from a background script to the content / options / popup scripts.
- *
  * @type {Function}
  * @param {string} event The event key.
  * @param {*=} value The event payload.
@@ -173,7 +168,6 @@ export const sendBackgroundEventNotificationToPageScript = async (event, value) 
  * Registers a listener for background events.
  *
  * This function can be called from any script.
- *
  * @param {Function} callback
  * The function to be called when a background event is fired, with the event type and payload as parameters.
  * @param {(string[])=} eventTypes
@@ -212,7 +206,6 @@ export const onBackgroundEvent = (callback, eventTypes) => {
  * Registers a listener for action requests.
  *
  * This function must be called from a script with access to the extension messages.
- *
  * @type {Function}
  * @param {Function} callback
  * The async function to be called when an action request is sent, with these parameters:
@@ -264,7 +257,6 @@ export const onActionRequest = callback => {
  * Registers a listener for UI events.
  *
  * This function must be called from a script with access to the extension messages.
- *
  * @type {Function}
  * @param {Function} callback
  * The function to be called when UI event is fired, with these parameters:
@@ -286,7 +278,6 @@ export const onUiEvent = callback => {
  * - event notifications,
  * - action requests,
  * - action results.
- *
  * @type {Function}
  * @param {string[]} actionTypes
  * The types of action requests that should be forwarded to the background scripts, if not all.

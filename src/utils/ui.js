@@ -156,7 +156,6 @@ export const getAncestorWithVerticalScrollbar = (element, threshold = 10) => {
  * Scrolls an element to the top of its first scrollable ancestor, if it is not entirely visible already.
  *
  * This function does not ensure that the element is actually visible in the current viewport.
- *
  * @param {Element} element An element.
  * @param {number} margin The margin to preserve between the top of the parent and the element itself.
  * @param {string} behavior The scroll behavior ("auto" or "smooth").

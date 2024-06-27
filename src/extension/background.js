@@ -4,7 +4,6 @@ import { DUOLINGO_URL_REGEXP } from '../duo/url';
  * Checks the value of chrome.runtime.lastError, and does nothing else.
  *
  * This is especially useful as a callback to chrome.* functions, when their result does not matter.
- *
  * @returns {void}
  */
 export const discardLastRuntimeError = () => {
@@ -33,8 +32,7 @@ export const getPageActionRule = () => ({
 
 /**
  * Enables or disables the extension popup on a browser tab, depending on whether it is browsing a Duolingo page.
- *
- * @param {Object} tab A browser tab.
+ * @param {object} tab A browser tab.
  * @returns {void}
  */
 const togglePopupOnTab = tab => {
@@ -49,7 +47,6 @@ const togglePopupOnTab = tab => {
 
 /**
  * Applies a callback to a given tab.
- *
  * @param {number} tabId The ID of a tab.
  * @param {Function} callback The callback to apply to the given tab.
  * @returns {void}
@@ -63,7 +60,6 @@ const withTab = (tabId, callback) => chrome.tabs.get(tabId, tab => (
 
 /**
  * Registers the necessary event listeners for the extension popup to be enabled on Duolingo pages.
- *
  * @returns {void}
  */
 export const registerPopupActivationListeners = () => {

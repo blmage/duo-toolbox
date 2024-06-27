@@ -24,7 +24,6 @@ export const SOUND_TYPE_TTS_WORD = 'tts_word';
 
 /**
  * A character or a syllable.
- *
  * @type {string}
  */
 export const SOUND_TYPE_TTS_MORPHEME = 'tts_morpheme';
@@ -130,7 +129,6 @@ const isValidHowlSettingValue = (code, value) => (
 /**
  * Applies the necessary overrides to ensure that the forced setting values on "Audio" objects are correctly handled,
  * and reapplied / recalculated whenever necessary.
- *
  * @param {string} code The code of a sound setting.
  * @param {string} propertyName The name of the corresponding property on "Audio" objects.
  * @returns {void}
@@ -167,7 +165,6 @@ const applyAudioSettingPropertyOverride = (code, propertyName) => (
 /**
  * Applies the necessary overrides to ensure that the forced setting values on "Howl" objects are correctly handled,
  * and reapplied / recalculated whenever necessary.
- *
  * @param {string} code The code of a sound setting.
  * @param {string} functionName The name of the function usable to manage the setting for "Howl" objects.
  * @returns {void}
@@ -255,7 +252,7 @@ const prepareSoundSettingConfig = (code, audioPropertyName, howlFunctionName, ba
 );
 
 /**
- * @type {Object}
+ * @type {object}
  */
 const SOUND_SETTINGS = {
   [SOUND_SETTING_RATE]: prepareSoundSettingConfig(
@@ -282,7 +279,7 @@ const SOUND_SETTINGS = {
 
 /**
  * @param {string} code The code of a sound setting.
- * @returns {Object} The configuration of the sound setting.
+ * @returns {object} The configuration of the sound setting.
  */
 const getSoundSetting = code => {
   const setting = SOUND_SETTINGS[code];
@@ -297,7 +294,7 @@ const getSoundSetting = code => {
 /**
  * @param {string} code The code of a sound setting.
  * @param {string} playbackStrategy A playback strategy.
- * @returns {Object} The set of functions that can be used to deal with a given setting for a given type of sounds.
+ * @returns {object} The set of functions that can be used to deal with a given setting for a given type of sounds.
  */
 const getSoundSettingFunctions = (code, playbackStrategy) => {
   if (SOUND_PLAYBACK_STRATEGIES.indexOf(playbackStrategy) === -1) {
@@ -352,7 +349,6 @@ export const getSoundSettingValue = getSoundSettingFunctions(_1, _3).getter(_2);
  * Applies a new setting value to a sound.
  *
  * The new value can only be overridden by another call to setSoundSettingValue, with a high enough priority.
- *
  * @param {string} code The code of a sound setting.
  * @param {number} value The new setting value.
  * @param {*} sound A sound object, whose type depends on the playback strategy.

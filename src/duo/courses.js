@@ -7,7 +7,7 @@ import { isObject, isString } from '../utils/functions';
  */
 
 /**
- * @type {object.<string, LanguageName>}
+ * @type {{[key: string]: object}}
  */
 const LANGUAGE_NAMES = {
   ar: {

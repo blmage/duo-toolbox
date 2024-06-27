@@ -1,7 +1,7 @@
 import { getToolboxIframe } from './internal';
 
 /**
- * @returns {Object} A console usable for logging data.
+ * @returns {object} A console usable for logging data.
  */
 const getLoggingConsole = () => getToolboxIframe().contentWindow.console;
 

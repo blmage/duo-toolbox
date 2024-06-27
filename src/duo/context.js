@@ -80,14 +80,12 @@ const SELECTOR_CHALLENGE_WRAPPER = '[data-test*="challenge"]';
  * A CSS selector for the result wrapper of the current challenge screen.
  *
  * It is currently the previous sibling of the wrapper of the "Continue" button (in the challenge footer).
- *
  * @type {string}
  */
 const SELECTOR_CHALLENGE_RESULT_WRAPPER = '._2Fc1K ._1tuLI';
 
 /**
  * The class name that is applied to the result wrapper of a challenge when the user has given a correct answer.
- *
  * @type {string}
  */
 const CLASS_NAME_CORRECT_CHALLENGE_RESULT_WRAPPER = '_3e9O1';
@@ -98,7 +96,7 @@ const CLASS_NAME_CORRECT_CHALLENGE_RESULT_WRAPPER = '_3e9O1';
 const SELECTOR_STORY_ELEMENT = '[data-test="stories-element"]';
 
 /**
- * @returns {Object} Data about the current context.
+ * @returns {object} Data about the current context.
  */
 export const getCurrentContext = () => {
   const url = document.location.href;

@@ -73,7 +73,6 @@ const KEY_PENDING_GLOBAL_LISTENERS = 'pending_global_listeners';
  * Registers a listener for when a global variable is defined and matches a given predicate.
  *
  * This only has an effect if no up-to-date listener was already registered with the same ID.
- *
  * @param {string} name The name of a global variable.
  * @param {Function} predicate The predicate that the variable must match.
  * @param {Function} callback The function to be called once the variable is defined and matches the predicate.
@@ -139,8 +138,7 @@ const KEY_OVERRIDE_VERSION = getUniqueKey('override_version');
  * Applies an override to a (global) function hosted by a specific object.
  *
  * The override is only applied if necessary, and if the function exists.
- *
- * @param {Object} host The object that hosts the function to override.
+ * @param {object} host The object that hosts the function to override.
  * @param {string} name The name of the function to override.
  * @param {Function} applyOverride A callback responsible for overriding the original function.
  * @param {number} overrideVersion The override version. Only the most recent override will take effect.
@@ -163,7 +161,6 @@ const overrideFunction = (host, name, applyOverride, overrideVersion = 1) => {
  * Applies an override to a function available in the global (window) scope.
  *
  * The override is only applied if necessary, once the function is defined.
- *
  * @type {Function}
  * @param {string} name The name of the function to override.
  * @param {Function} applyOverride A callback responsible for overriding the original function.
@@ -184,7 +181,6 @@ export const overrideGlobalFunction = (name, applyOverride, overrideVersion = 1)
  * Applies an override to a static method belonging to an interface available in the global (window) scope.
  *
  * The override is only applied if necessary, once the interface is defined, and if the method exists.
- *
  * @param {string} constructorName The name of the constructor whose prototype holds the method to override.
  * @param {string} methodName The name of the static method to override.
  * @param {Function} applyOverride A callback responsible for overriding the original method.
@@ -205,7 +201,6 @@ export const overrideStaticMethod = (constructorName, methodName, applyOverride,
  * Applies an override to an instance method belonging to an interface available in the global (window) scope.
  *
  * The override is only applied if necessary, once the interface is defined, and if the method exists.
- *
  * @param {string} constructorName The name of the constructor whose prototype holds the method to override.
  * @param {string} methodName The name of the instance method to override.
  * @param {Function} applyOverride A callback responsible for overriding the original method.
@@ -226,7 +221,6 @@ export const overrideInstanceMethod = (constructorName, methodName, applyOverrid
  * Registers a listener for when a constructor available the global (window) scope is called.
  *
  * This only has an effect if no up-to-date listener was already registered with the same ID.
- *
  * @param {string} name The name of the constructor.
  * @param {Function} callback The function to be called with the result and arguments of the constructor when it is called.
  * @param {string} listenerId The listener ID.
@@ -260,7 +254,6 @@ export const onConstructorCall = (name, callback, listenerId, listenerVersion = 
  * Applies an override to the descriptor of an object property.
  *
  * The override is only applied if necessary. If the property does not exist yet, it will be initialized.
- *
  * @param {object} host The object that owns the property to override.
  * @param {string} name The name of the property to override.
  * @param {Function} applyOverride A callback responsible for overriding the original property descriptor.

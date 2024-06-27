@@ -42,7 +42,6 @@ export const isMutexLocked = !!getSharedGlobalVariable(KEY_MUTEXES, {})?.[it]?.c
 
 /**
  * Updates a mutex, initializing it if necessary.
- *
  * @param {string} mutexCode The code of a mutex.
  * @param {Function} updateCallback The callback usable to update the mutex.
  * @returns {void}
@@ -66,7 +65,6 @@ const updateMutex = (mutexCode, updateCallback) => {
  * Releases a mutex, and schedules the next pending acquisition (if any, based on priority).
  *
  * This only has an effect if the mutex is locked by the given holder.
- *
  * @param {string} mutexCode The code of the mutex to be released.
  * @param {number} holderId The ID of the holder that is releasing the mutex.
  * @returns {void}
@@ -93,7 +91,6 @@ const releaseMutex = (mutexCode, holderId) => {
 
 /**
  * Attempts to acquire a mutex, waiting as long as necessary for it to become available.
- *
  * @param {string} mutexCode
  * The code of the mutex to acquire.
  * @param {object} config A set of configuration options.

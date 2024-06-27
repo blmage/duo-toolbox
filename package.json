@@ -26,12 +26,12 @@
     "cxproduct": "^2.1.4"
   },
   "devDependencies": {
-    "@babel/cli": "^7.14.8",
-    "@babel/core": "^7.14.8",
-    "@babel/plugin-proposal-optional-chaining": "^7.14.5",
+    "@babel/cli": "^7.24.7",
+    "@babel/core": "^7.24.7",
+    "@babel/plugin-transform-optional-chaining": "^7.24.7",
     "babel-plugin-macros": "^3.1.0",
     "eslint": "^8.2.0",
-    "eslint-plugin-jsdoc": "^37.0.3",
+    "eslint-plugin-jsdoc": "^48.5.0",
     "one-liner.macro": "git+https://github.com/blmage/one-liner.macro.git#semver:^3.3.0"
   }
 }
